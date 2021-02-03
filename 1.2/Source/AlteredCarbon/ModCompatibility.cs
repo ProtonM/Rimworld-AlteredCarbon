@@ -79,6 +79,23 @@ namespace AlteredCarbon
 				psychologyData.romanticDrive = sexualityTracker.romanticDrive;
 				psychologyData.kinseyRating = sexualityTracker.kinseyRating;
 				psychologyData.knownSexualities = Traverse.Create(sexualityTracker).Field<Dictionary<Pawn, int>>("knownSexualities").Value;
+				psychologyData.tickSinceLastSeenLover = comp.LDRTick;
+				psychologyData.lastDateTick = comp.Psyche.lastDateTick;
+				psychologyData.beenBuried = comp.AlreadyBuried;
+				psychologyData.records = new Dictionary<string, float>();
+				psychologyData.upbringing = comp.Psyche.upbringing;
+				List<RecordDef> defsListForReading = DefDatabase<RecordDef>.AllDefsListForReading;
+				for (int index = 0; index < defsListForReading.Count; ++index)
+                {
+					psychologyData.records[defsListForReading[index].defName] = pawn.records.GetValue(defsListForReading[index]);
+				}
+
+				psychologyData.personalityNodes = new Dictionary<string, float>();
+				foreach (Psychology.PersonalityNode node in comp.Psyche.PersonalityNodes)
+                {
+					psychologyData.personalityNodes.Add(node.def.defName, node.rawRating);
+				}
+				
 				return psychologyData;
 			}
 			return null;
@@ -93,8 +110,22 @@ namespace AlteredCarbon
 				sexualityTracker.sexDrive = psychologyData.sexDrive;
 				sexualityTracker.romanticDrive = psychologyData.romanticDrive;
 				sexualityTracker.kinseyRating = psychologyData.kinseyRating;
+				comp.LDRTick = psychologyData.tickSinceLastSeenLover;
+				comp.Psyche.lastDateTick = psychologyData.lastDateTick;
+				comp.AlreadyBuried = psychologyData.beenBuried;
+				comp.Psyche.upbringing = psychologyData.upbringing;
+				foreach (KeyValuePair<string, float> entry in psychologyData.records)
+				{
+					
+					pawn.records.AddTo(DefDatabase<RecordDef>.GetNamed(entry.Key), entry.Value);
+				}
 				Traverse.Create(sexualityTracker).Field<Dictionary<Pawn, int>>("knownSexualities").Value = psychologyData.knownSexualities;
 				comp.Sexuality = sexualityTracker;
+				foreach (Psychology.PersonalityNode node in comp.Psyche.PersonalityNodes)
+				{
+					node.pawn = pawn;
+					node.rawRating = psychologyData.personalityNodes[node.def.defName];
+				}
 			}
 		}
 

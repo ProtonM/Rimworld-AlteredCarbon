@@ -31,8 +31,4 @@ Find and install implants into your colonists to prevent their death when their 
 		<li>OskarPotocki.VanillaFactionsExpanded.Core</li>
 		<li>OskarPotocki.VanillaExpandedFramework</li>
     </loadAfter>
-	<incompatibleWith>
-		<li>Community.Psychology.UnofficialUpdate</li>
-	</incompatibleWith>
-
 </ModMetaData>

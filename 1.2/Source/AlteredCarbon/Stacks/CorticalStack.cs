@@ -17,6 +17,18 @@ namespace AlteredCarbon
         public float sexDrive;
         public float romanticDrive;
         public Dictionary<Pawn, int> knownSexualities;
+
+        public int upbringing;
+        public int lastDateTick = 0;
+        public Pawn pawn;
+
+        public Dictionary<string, float> personalityNodes;
+
+        public bool beenBuried = false;
+        public int tickSinceLastSeenLover;
+
+        public Dictionary<string, float> records;
+
         public PsychologyData()
         {
 
@@ -24,14 +36,25 @@ namespace AlteredCarbon
 
         public void ExposeData()
         {
-            Scribe_Values.Look<int>(ref this.kinseyRating, "kinseyRating", 0, false);
-            Scribe_Values.Look<float>(ref this.sexDrive, "sexDrive", 1f, false);
-            Scribe_Values.Look<float>(ref this.romanticDrive, "romanticDrive", 1f, false);
-            Scribe_Collections.Look<Pawn, int>(ref this.knownSexualities, "knownSexualities", LookMode.Reference, LookMode.Value, ref this.knownSexualitiesWorkingKeys, ref this.knownSexualitiesWorkingValues);
+            //Pawn_SexualityTracker
+            Scribe_Values.Look(ref this.kinseyRating, "kinseyRating", 0, false);
+            Scribe_Values.Look(ref this.sexDrive, "sexDrive", 1, false);
+            Scribe_Values.Look(ref this.romanticDrive, "romanticDrive", 1, false);
+            Scribe_Collections.Look(ref this.knownSexualities, "knownSexualities", LookMode.Reference, LookMode.Value, ref this.knownSexualitiesWorkingKeys, ref this.knownSexualitiesWorkingValues);
+
+            //Pawn_PsycheTracker
+            Scribe_Values.Look(ref this.upbringing, "upbringing", 0, false);
+            Scribe_Values.Look(ref this.lastDateTick, "lastDateTick", 0, false);
+            Scribe_Collections.Look(ref this.personalityNodes, "nodes", LookMode.Value);
+            Scribe_Collections.Look(ref this.records, "records", LookMode.Value);
+
+            Scribe_Values.Look(ref this.beenBuried, "beenBuried");
+            Scribe_Values.Look(ref this.tickSinceLastSeenLover, "tickSinceLastSeenLover", Find.TickManager.TicksAbs);
         }
 
         private List<Pawn> knownSexualitiesWorkingKeys;
         private List<int> knownSexualitiesWorkingValues;
+
     }
 
     public class CorticalStack : ThingWithComps
@@ -78,6 +101,7 @@ namespace AlteredCarbon
 
         // Psychology
         public PsychologyData psychologyData;
+
 
         public bool isCopied = false;
         public int stackGroupID;

@@ -311,6 +311,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Designators\Designator_ExtractStack.cs" />
+    <Compile Include="HarmonyPatches\RecordTracker.cs" />
     <Compile Include="Jobs\WorkGiver_ExtractStack.cs" />
     <Compile Include="ModCompatibility.cs" />
     <Compile Include="AlteredCarbonDefOf.cs" />
