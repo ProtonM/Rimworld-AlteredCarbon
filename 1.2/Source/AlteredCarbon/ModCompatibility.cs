@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
-using RimWorld;
 using UnityEngine;
 using Verse;
+
 
 namespace AlteredCarbon
 {
@@ -18,6 +17,14 @@ namespace AlteredCarbon
 				alienComp.GetChannel("skin").first = color;
             }
 		}
+		public static void SetHairColor(Pawn pawn, Color color)
+		{
+			var alienComp = ThingCompUtility.TryGetComp<AlienRace.AlienPartGenerator.AlienComp>(pawn);
+			if (alienComp != null)
+			{
+				alienComp.GetChannel("hair").first = color;
+			}
+		}
 
 		public static void SetAlienHead(Pawn pawn, string head)
 		{
@@ -27,11 +34,60 @@ namespace AlteredCarbon
 				alienComp.crownType = head;
 			}
 		}
+
+		public static string GetAlienHead(Pawn pawn)
+		{
+			string sRet = "(unknown)";
+			var alienComp = ThingCompUtility.TryGetComp<AlienRace.AlienPartGenerator.AlienComp>(pawn);
+			if (alienComp != null)
+			{
+				sRet = alienComp.crownType;
+			}
+			return sRet;
+		}
 		public static List<string> GetAlienHeadPaths(Pawn pawn)
         {
 			var alienDef = pawn.def as AlienRace.ThingDef_AlienRace;
 			return alienDef.alienRace.generalSettings.alienPartGenerator.aliencrowntypes;
 		}
+
+		public static List<Color> GetRacialColorPresets(ThingDef thingDef, string channelName)
+		{
+			ColorGenerator generator = null;
+			AlienRace.ThingDef_AlienRace raceDef = thingDef as AlienRace.ThingDef_AlienRace;
+			for (int ii = 0; ii < raceDef.alienRace.generalSettings.alienPartGenerator.colorChannels.Count(); ++ii)
+            {
+				if (raceDef.alienRace.generalSettings.alienPartGenerator.colorChannels[ii].name == channelName)
+                {
+					generator = raceDef.alienRace.generalSettings.alienPartGenerator.colorChannels[ii].first;
+					break;
+                }
+			}
+			if (generator != null)
+			{
+				ColorGenerator_Options options = generator as ColorGenerator_Options;
+				if (options != null)
+				{
+					return options.options.Where((ColorOption option) => {
+						return option.only.a > -1.0f;
+					}).Select((ColorOption option) => {
+						return option.only;
+					}).ToList();
+				}
+				ColorGenerator_Single single = generator as ColorGenerator_Single;
+				if (single != null)
+				{
+					return new List<Color>() { single.color };
+				}
+				ColorGenerator_White white = generator as ColorGenerator_White;
+				if (white != null)
+				{
+					return new List<Color>() { Color.white };
+				}
+			}
+			return new List<Color>();
+		}
+
 		public static int GetSyrTraitsSexuality(Pawn pawn)
         {
 			var comp = ThingCompUtility.TryGetComp<SyrTraits.CompIndividuality>(pawn);
@@ -99,7 +155,7 @@ namespace AlteredCarbon
 		}
 
 		public static List<ThingDef> GetAllAlienRaces(ExcludeRacesModExtension raceOptions)
-        {
+		{
 			return DefDatabase<AlienRace.ThingDef_AlienRace>.AllDefs.Where(x => !raceOptions.racesToExclude.Contains(x.defName)).Cast<ThingDef>().ToList();
 		}
 

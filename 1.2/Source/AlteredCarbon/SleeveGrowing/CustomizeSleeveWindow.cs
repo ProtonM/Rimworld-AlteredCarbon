@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using UnityEngine;
 using Verse;
 using System.Text.RegularExpressions;
@@ -42,7 +41,7 @@ namespace AlteredCarbon
                 }
                 else
                 {
-                    return new Vector2(728f, 568f);   //860x570
+                    return new Vector2(728f, 638f);   //860x670
                 }
             }
         }
@@ -70,12 +69,18 @@ namespace AlteredCarbon
         public Rect btnGenderMale;
         public Rect btnGenderFemale;
 
-        public Rect btnSkinColourOutline;
-        public Rect btnSkinColour1;
-        public Rect btnSkinColour2;
-        public Rect btnSkinColour3;
-        public Rect btnSkinColour4;
-        public Rect btnSkinColour5;
+        public Rect btnSkinColourOutlinePremade;
+        public List<Tuple<Rect, Color>> skinColorButtons;
+        static readonly List<Color> humanSkinColors = new List<Color>(new Color[] { rgbConvert(242, 237, 224), rgbConvert(255, 239, 213), rgbConvert(255, 239, 189), rgbConvert(228, 158, 90), rgbConvert(130, 91, 48) });
+        public Rect skinColorPicker;
+        public Rect skinSaturationSlider;
+        public Rect skinValueSlider;
+        public float skinHue = 1.0f;
+        public float skinSaturation = 0.0f;
+        public float skinValue = 1.0f;
+        public float selectedSkinHue = 1.0f;
+        public float selectedSkinSaturation = 0.0f;
+        public float selectedSkinValue = 1.0f;
 
         public Rect btnRaceChangeOutline;
         public Rect btnRaceChangeArrowLeft;
@@ -93,16 +98,17 @@ namespace AlteredCarbon
         public Rect btnBodyShapeSelection;
 
         public Rect btnHairColourOutlinePremade;
-        public Rect btnHairColourOutline;
-        public Rect btnHairColourOutline2;
-        public Rect btnHairColour1;
-        public Rect btnHairColour2;
-        public Rect btnHairColour3;
-        public Rect btnHairColour4;
-        public Rect btnHairColour5;
-        public Rect btnHairColour6;
-        public Rect btnHairColour7;
-        public Rect btnHairColour8;
+        public List<Tuple<Rect, Color>> hairColorButtons;
+        static readonly List<Color> humanHairColors = new List<Color>(new Color[] { rgbConvert(51, 51, 51), rgbConvert(79, 71, 66), rgbConvert(64, 51, 38), rgbConvert(77, 51, 26), rgbConvert(90, 58, 32), rgbConvert(132, 83, 47), rgbConvert(193, 146, 85), rgbConvert(237, 202, 156) });
+        public Rect hairColorPicker;
+        public Rect hairSaturationSlider;
+        public Rect hairValueSlider;
+        float hairHue = 1.0f;
+        float hairSaturation = 0.0f;
+        float hairValue = 1.0f;
+        public float selectedHairHue = 1.0f;
+        public float selectedHairSaturation = 0.0f;
+        public float selectedHairValue = 1.0f;
 
         public Rect btnHairTypeOutline;
         public Rect btnHairTypeArrowLeft;
@@ -139,12 +145,7 @@ namespace AlteredCarbon
         public float pawnBoxSide = 200;
         public float pawnSpacingFromEdge = 5;
 
-
-        public Texture2D texDarkness;
         public Texture2D texColor;
-
-        public Color selectedColor = Color.white;
-        public Color selectedColorFinal;
 
         public int hairTypeIndex = 0;
         public int raceTypeIndex = 0;
@@ -153,6 +154,7 @@ namespace AlteredCarbon
         public int alienHeadtypeIndex = 0;
         public int maleBodyTypeIndex = 0;
         public int femaleBodyTypeIndex = 0;
+        public string headLabel;
 
         public int baseTicksToGrow = 900000;
         public int baseTicksToGrow2 = 0;
@@ -164,11 +166,6 @@ namespace AlteredCarbon
 
         public int beautyLevel = 2;
         public int qualityLevel = 2;
-
-        public int selectedRaceBtn = -1;
-
-        public int selectedHairBtn = -1;
-
 
         //button text subtle copied from Rimworld basecode but with minor changes to fit this UI
         public static bool ButtonTextSubtleCentered(Rect rect, string label, Vector2 functionalSizeOffset = default(Vector2))
@@ -238,20 +235,33 @@ namespace AlteredCarbon
             btnGenderFemale.x += btnGenderMale.width + buttonOffsetFromButton;
 
             //skin colour
+            float lastOffset;
             lblSkinColour = new Rect(leftOffset, returnYfromPrevious(lblGender), labelWidth, buttonHeight);
-            btnSkinColourOutline = lblSkinColour;
-            btnSkinColourOutline.x += returnButtonOffset(lblGender);
-            btnSkinColourOutline.width = 10 + (smallButtonOptionWidth + 5) * 5; //5 on each side + (buttonoptionwidth + offset) * number of buttons
-            btnSkinColour1 = new Rect(btnSkinColourOutline.x + 5, btnSkinColourOutline.y + 5, smallButtonOptionWidth, btnSkinColourOutline.height - 10);
-            btnSkinColour2 = new Rect(btnSkinColour1.x + 5 + smallButtonOptionWidth, btnSkinColourOutline.y + 5, smallButtonOptionWidth, btnSkinColourOutline.height - 10);
-            btnSkinColour3 = new Rect(btnSkinColour2.x + 5 + smallButtonOptionWidth, btnSkinColourOutline.y + 5, smallButtonOptionWidth, btnSkinColourOutline.height - 10);
-            btnSkinColour4 = new Rect(btnSkinColour3.x + 5 + smallButtonOptionWidth, btnSkinColourOutline.y + 5, smallButtonOptionWidth, btnSkinColourOutline.height - 10);
-            btnSkinColour5 = new Rect(btnSkinColour4.x + 5 + smallButtonOptionWidth, btnSkinColourOutline.y + 5, smallButtonOptionWidth, btnSkinColourOutline.height - 10);
+            btnSkinColourOutlinePremade = lblSkinColour;
+            btnSkinColourOutlinePremade.x += returnButtonOffset(lblSkinColour);
+            btnSkinColourOutlinePremade.width = buttonWidth * 2 + buttonOffsetFromButton;
+            if (ModCompatibility.AlienRacesIsActive)
+            {
+                skinColorPicker = btnSkinColourOutlinePremade;
+                skinColorPicker.y = returnYfromPrevious(btnSkinColourOutlinePremade);
+                skinSaturationSlider = skinColorPicker;
+                skinSaturationSlider.height = buttonHeight / 2.0f;
+                skinSaturationSlider.y = returnYfromPrevious(skinColorPicker);
+                skinValueSlider = skinColorPicker;
+                skinValueSlider.height = buttonHeight / 2.0f;
+                skinValueSlider.y = returnYfromPrevious(skinSaturationSlider);
+                lastOffset = returnYfromPrevious(skinValueSlider);
+            }
+            else
+            {
+                lastOffset = returnYfromPrevious(btnSkinColourOutlinePremade);
+            }
+            UpdateSkinColorButtons();
 
             if (!ModCompatibility.AlienRacesIsActive)
             {
                 //head shape
-                lblHeadShape = new Rect(leftOffset, returnYfromPrevious(lblSkinColour), labelWidth, buttonHeight);
+                lblHeadShape = new Rect(leftOffset, lastOffset, labelWidth, buttonHeight);
                 btnHeadShapeOutline = lblHeadShape;
                 btnHeadShapeOutline.x += returnButtonOffset(lblHeadShape);
                 btnHeadShapeOutline.width = buttonWidth * 2 + buttonOffsetFromButton;
@@ -262,7 +272,7 @@ namespace AlteredCarbon
             else
             {
                 //alien race
-                lblRaceChange = new Rect(leftOffset, returnYfromPrevious(lblSkinColour), labelWidth, buttonHeight);
+                lblRaceChange = new Rect(leftOffset, lastOffset, labelWidth, buttonHeight);
                 btnRaceChangeOutline = lblRaceChange;
                 btnRaceChangeOutline.x += returnButtonOffset(lblRaceChange);
                 btnRaceChangeOutline.width = buttonWidth * 2 + buttonOffsetFromButton;
@@ -295,22 +305,18 @@ namespace AlteredCarbon
             btnHairColourOutlinePremade = lblHairColour;
             btnHairColourOutlinePremade.x += returnButtonOffset(lblHairColour);
             btnHairColourOutlinePremade.width = buttonWidth * 2 + buttonOffsetFromButton;
-            btnHairColourOutline = btnHairColourOutlinePremade;
-            btnHairColourOutline.y = returnYfromPrevious(btnHairColourOutlinePremade);
-            btnHairColourOutline2 = btnHairColourOutline;
-            btnHairColourOutline2.y = returnYfromPrevious(btnHairColourOutline);
-            btnHairColour1 = new Rect(btnHairColourOutlinePremade.x + 5, btnHairColourOutlinePremade.y + 5, smallButtonOptionWidthHair, btnHairColourOutlinePremade.height - 10);
-            btnHairColour2 = new Rect(btnHairColour1.x + 5 + smallButtonOptionWidthHair, btnHairColourOutlinePremade.y + 5, smallButtonOptionWidthHair, btnHairColourOutlinePremade.height - 10);
-            btnHairColour3 = new Rect(btnHairColour2.x + 5 + smallButtonOptionWidthHair, btnHairColourOutlinePremade.y + 5, smallButtonOptionWidthHair, btnHairColourOutlinePremade.height - 10);
-            btnHairColour4 = new Rect(btnHairColour3.x + 5 + smallButtonOptionWidthHair, btnHairColourOutlinePremade.y + 5, smallButtonOptionWidthHair, btnHairColourOutlinePremade.height - 10);
-            btnHairColour5 = new Rect(btnHairColour4.x + 5 + smallButtonOptionWidthHair, btnHairColourOutlinePremade.y + 5, smallButtonOptionWidthHair, btnHairColourOutlinePremade.height - 10);
-            btnHairColour6 = new Rect(btnHairColour5.x + 5 + smallButtonOptionWidthHair, btnHairColourOutlinePremade.y + 5, smallButtonOptionWidthHair, btnHairColourOutlinePremade.height - 10);
-            btnHairColour7 = new Rect(btnHairColour6.x + 5 + smallButtonOptionWidthHair, btnHairColourOutlinePremade.y + 5, smallButtonOptionWidthHair, btnHairColourOutlinePremade.height - 10);
-            btnHairColour8 = new Rect(btnHairColour7.x + 5 + smallButtonOptionWidthHair, btnHairColourOutlinePremade.y + 5, smallButtonOptionWidthHair, btnHairColourOutlinePremade.height - 10);
-
+            hairColorPicker = btnHairColourOutlinePremade;
+            hairColorPicker.y = returnYfromPrevious(btnHairColourOutlinePremade);
+            hairSaturationSlider = hairColorPicker;
+            hairSaturationSlider.height = buttonHeight / 2.0f;
+            hairSaturationSlider.y = returnYfromPrevious(hairColorPicker);
+            hairValueSlider = hairColorPicker;
+            hairValueSlider.height = buttonHeight / 2.0f;
+            hairValueSlider.y = returnYfromPrevious(hairSaturationSlider);
+            UpdateHairColorButtons();
 
             //hairtype
-            lblHairType = new Rect(leftOffset, returnYfromPrevious(btnHairColourOutline2), labelWidth, buttonHeight);
+            lblHairType = new Rect(leftOffset, returnYfromPrevious(hairValueSlider), labelWidth, buttonHeight);
             btnHairTypeOutline = lblHairType;
             btnHairTypeOutline.x += returnButtonOffset(lblHairType);
             btnHairTypeOutline.width = buttonWidth * 2 + buttonOffsetFromButton;
@@ -351,123 +357,55 @@ namespace AlteredCarbon
             btnCancel = new Rect(InitialSize.x * .5f + buttonWidth / 2 + buttonOffsetFromButton / 2 - buttonWidth / 2, InitialSize.y - buttonHeight - 38, buttonWidth, buttonHeight);
 
             //Create textures
-            updateColors();
+            InitColorPicker();
 
         }
 
-        public Color rgbConvert(float r, float g, float b)
+        public static Color rgbConvert(float r, float g, float b)
         {
             return new Color(((1f / 255f) * r), ((1f / 255f) * g), ((1f / 255f) * b));
         }
-        public void updateColors()
+        public void InitColorPicker()
         {
             //Create textures
             texColor = new Texture2D(Convert.ToInt32(buttonWidth * 2 + buttonOffsetFromButton), Convert.ToInt32(buttonHeight));
-            float red = -1;
-            float blue = -1;
-            float green = -1;
-            float value = -1;
-            for (float x = 0; x < texColor.width; x++)
+            for (int x = 0; x < texColor.width; x++)
             {
-
-                //red 255 to 0 1/4   0 to 255 3/4 to 4/4
-                //green  0 to 255 1/4   255 to 0 1/4 to 2/4
-                //blue   0 to 255 2/4  to 3/4   255 to 0 3/4 4/4
-                float quarter = (buttonWidth * 2 + buttonOffsetFromButton) / 3;
-                if (x < quarter)
+                for (int y = 0; y < texColor.height; y++)
                 {
-                    red = 1 - (1 / quarter) * x; //go from 255 to 0
-                    green = (1 / quarter) * x; //builds up from 0 to 255
-                    blue = 0;
-
+                    texColor.SetPixel(x,y,Color.HSVToRGB(((float)x)/texColor.width, 1.0f, 1.0f));
                 }
-                if (x >= quarter && x <= quarter * 2)
-                {
-                    red = 0;
-                    green = 1 - (1 / quarter) * (x - quarter); //go from 255 to 0
-                    blue = (1 / quarter) * (x - quarter); //builds up from 0 to 255
-                }
-                if (x > quarter * 2 && x < quarter * 3)
-                {
-                    red = (1 / quarter) * (x - quarter * 2); //builds up from 0 to 255
-                    green = 0;
-                    blue = 1 - (1 / quarter) * (x - quarter * 2); //go from 255 to 0
-                }
-                //float value = (1 / (buttonWidth * 2 + buttonOffsetFromButton)) * x;
-                for (float y = 0; y < texColor.height; y++)
-                {
-                    value = 1;// (1 / (buttonHeight)) * y;
-                    if (x < quarter)
-                    {
-                        if (y > texColor.height / 2)
-                        {
-                            blue = (1 / (buttonHeight / 2)) * (y - buttonHeight / 2);
-                        }
-                        else
-                        {
-                            blue = 0;
-                        }
-
-
-                    }
-                    if (x >= quarter && x <= quarter * 2)
-                    {
-                        if (y > texColor.height / 2)
-                        {
-                            red = (1 / (buttonHeight / 2)) * (y - buttonHeight / 2);
-                        }
-                        else
-                        {
-                            red = 0;
-                        }
-                    }
-                    if (x > quarter * 2 && x < quarter * 3)
-                    {
-                        if (y > texColor.height / 2)
-                        {
-                            green = (1 / (buttonHeight / 2)) * (y - buttonHeight / 2);
-                        }
-                        else
-                        {
-                            green = 0;
-                        }
-                    }
-                    texColor.SetPixel(Convert.ToInt32(x), Convert.ToInt32(y), new Color(red * value, green * value, blue * value));
-                }
-                //Log.Message(value.ToString());
             }
             texColor.Apply(false);
-
-            //
-            texDarkness = new Texture2D(Convert.ToInt32(buttonWidth * 2 + buttonOffsetFromButton), Convert.ToInt32(buttonHeight));
-            float valueMod = 0;
-            for (float x = 0; x < texDarkness.width; x++)
-            {
-                if (x > texDarkness.width / 2)
-                {
-                    value = 1 - (1 / (buttonWidth + buttonOffsetFromButton / 2)) * (x - texDarkness.width / 2);
-                }
-                else
-                {
-                    value = 1;
-                    valueMod = 1 - (1 / (buttonWidth + buttonOffsetFromButton / 2)) * x;
-
-                }
-                for (float y = 0; y < texDarkness.height; y++)
-                {
-                    texDarkness.SetPixel(Convert.ToInt32(x), Convert.ToInt32(y), new Color((valueMod + selectedColor.r) * value, (valueMod + selectedColor.g) * value, (valueMod + selectedColor.b) * value));
-                }
-                //Log.Message(value.ToString());
-            }
-            texDarkness.Apply(false);
         }
 
-        public void setHair(Color color)
+        public void UpdateSkin()
         {
-            selectedColor = color;
-            newSleeve.story.hairColor = selectedColor;
-            refreshAndroidPortrait = true;
-            updateColors();
+            if (selectedSkinHue != skinHue
+                || selectedSkinSaturation != skinSaturation
+                || selectedSkinValue != skinValue)
+            {
+                Color color = Color.HSVToRGB(skinHue, skinSaturation, skinValue);
+                selectedSkinHue = skinHue;
+                selectedSkinSaturation = skinSaturation;
+                selectedSkinValue = skinValue;
+                ModCompatibility.SetSkinColor(newSleeve, color);
+                refreshAndroidPortrait = true;
+            }
+        }
+        public void UpdateHair()
+        {
+            if (selectedHairHue != hairHue
+                || selectedHairSaturation != hairSaturation
+                || selectedHairValue != hairValue)
+            {
+                Color color = Color.HSVToRGB(hairHue, hairSaturation, hairValue);
+                selectedHairHue = hairHue;
+                selectedHairSaturation = hairSaturation;
+                selectedHairValue = hairValue;
+                newSleeve.story.hairColor = color;
+                refreshAndroidPortrait = true;
+            }
         }
 
         public void UpdateSleeveGraphic()
@@ -475,6 +413,62 @@ namespace AlteredCarbon
             newSleeve.Drawer.renderer.graphics.ResolveAllGraphics();
             PortraitsCache.SetDirty(newSleeve);
             PortraitsCache.PortraitsCacheUpdate();
+        }
+
+        public void UpdateSkinColorButtons()
+        {
+            //fetch colors from HAR defs where possible, fall back on inbuilt colors otherwise
+            //incompatible with pre-1.2 style color channel Defs
+            List<Color> skinColors = null;
+            if (ModCompatibility.AlienRacesIsActive)
+            {
+                skinColors = ModCompatibility.GetRacialColorPresets(newSleeve.kindDef.race, "skin");
+            }
+            if (skinColors.NullOrEmpty())
+            {
+                skinColors = humanSkinColors;
+            }            
+            skinColorButtons = new List<Tuple<Rect, Color>>();
+            float xOffset = btnSkinColourOutlinePremade.x;
+            float yOffset = btnSkinColourOutlinePremade.y + 5;
+            float buttonWidth = Math.Min(btnSkinColourOutlinePremade.width / skinColors.Count(), smallButtonOptionWidth);
+            for (int ii = 0; ii < skinColors.Count(); ++ii)
+            {
+                skinColorButtons.Add(new Tuple<Rect, Color>(new Rect(xOffset + buttonWidth * ii, yOffset, buttonWidth, btnSkinColourOutlinePremade.height - 10), skinColors[ii]));
+            }
+            for (int ii = 0; ii < skinColorButtons.Count(); ++ii)
+            {
+                GUI.DrawTexture(GenUI.ExpandedBy(skinColorButtons[ii].Item1, 2f), BaseContent.GreyTex);
+                Widgets.DrawBoxSolid(skinColorButtons[ii].Item1, skinColorButtons[ii].Item2);
+            }
+        }
+
+        public void UpdateHairColorButtons()
+        {
+            //fetch colors from HAR defs where possible, fall back on inbuilt colors otherwise
+            //incompatible with pre-1.2 style color channel Defs
+            List<Color> hairColors = null;
+            if (ModCompatibility.AlienRacesIsActive)
+            {
+                hairColors = ModCompatibility.GetRacialColorPresets(newSleeve.kindDef.race, "hair");
+            }
+            if (hairColors.NullOrEmpty())
+            {
+                hairColors = humanHairColors;
+            }
+            hairColorButtons = new List<Tuple<Rect, Color>>();
+            float xOffset = btnHairColourOutlinePremade.x;
+            float yOffset = btnHairColourOutlinePremade.y + 5;
+            float buttonWidth = Math.Min(btnHairColourOutlinePremade.width / hairColors.Count(), smallButtonOptionWidth);
+            for (int ii = 0; ii < hairColors.Count(); ++ii)
+            {
+                hairColorButtons.Add(new Tuple<Rect, Color>(new Rect(xOffset + buttonWidth * ii, yOffset, buttonWidth, btnHairColourOutlinePremade.height - 10), hairColors[ii]));
+            }
+            for (int ii = 0; ii < hairColorButtons.Count(); ++ii)
+            {
+                GUI.DrawTexture(GenUI.ExpandedBy(hairColorButtons[ii].Item1, 2f), BaseContent.GreyTex);
+                Widgets.DrawBoxSolid(hairColorButtons[ii].Item1, hairColorButtons[ii].Item2);
+            }
         }
 
         private static readonly string[] HeadsFolderPaths = new string[2]
@@ -512,20 +506,11 @@ namespace AlteredCarbon
                 refreshAndroidPortrait = false;
             }
 
-            Rect pawnRect = new Rect(inRect);
-            pawnRect.width = PawnPortraitSize.x + 16f;
-            pawnRect.height = PawnPortraitSize.y + 16f;
-            pawnRect = inRect.RightHalf();
-            pawnRect = inRect.RightHalf();
-            pawnRect.x += 16f;
-            pawnRect.y += 16f;
 
             //Draw Pawn stuff.
             if (newSleeve != null)
             {
-                //Pawn
-                Rect pawnRenderRect = new Rect(pawnRect.xMin + (pawnRect.width - PawnPortraitSize.x) / 2f - 10f, pawnRect.yMin + 20f, PawnPortraitSize.x, PawnPortraitSize.y);
-                //GUI.DrawTexture(pawnRenderRect, PortraitsCache.Get(newSleeve, PawnPortraitSize, default(Vector3), 1f));
+
 
                 Text.Font = GameFont.Medium;
 
@@ -568,8 +553,10 @@ namespace AlteredCarbon
                         currentPawnKindDef.race = allDefs.ElementAt(raceTypeIndex); ;
                         newSleeve = GetNewPawn(newSleeve.gender);
                         UpdateSleeveGraphic();
+                        UpdateSkinColorButtons();
+                        UpdateHairColorButtons();
                     }
-                    if (ButtonTextSubtleCentered(btnRaceChangeSelection, "RaceTypeReplace".Translate()))
+                    if (ButtonTextSubtleCentered(btnRaceChangeSelection, currentPawnKindDef.race.label))
                     {
                         var allDefs = ModCompatibility.GetAllAlienRaces(this.raceOptions);
                         IEnumerable<ThingDef> races = from racedef in allDefs select racedef;
@@ -578,6 +565,8 @@ namespace AlteredCarbon
                             currentPawnKindDef.race = raceDef;
                             newSleeve = GetNewPawn(newSleeve.gender);
                             UpdateSleeveGraphic();
+                            UpdateSkinColorButtons();
+                            UpdateHairColorButtons();
                         });
                     }
                     if (ButtonTextSubtleCentered(btnRaceChangeArrowRight, ">"))
@@ -594,122 +583,64 @@ namespace AlteredCarbon
                         currentPawnKindDef.race = allDefs.ElementAt(raceTypeIndex); ;
                         newSleeve = GetNewPawn(newSleeve.gender);
                         UpdateSleeveGraphic();
+                        UpdateSkinColorButtons();
+                        UpdateHairColorButtons();
                     }
                 }
 
                 //Skin Colour
                 Text.Anchor = TextAnchor.MiddleLeft;
                 Widgets.Label(lblSkinColour, "SkinColour".Translate().CapitalizeFirst() + ":");
-                Widgets.DrawMenuSection(btnSkinColourOutline);
-                Widgets.DrawShadowAround(btnSkinColourOutline);
 
-                switch (selectedRaceBtn)
+                if (ModCompatibility.AlienRacesIsActive)
                 {
-                    case 1:
+                    Widgets.DrawMenuSection(skinColorPicker);
+                    Widgets.DrawTextureFitted(skinColorPicker, texColor, 1);
+                    skinSaturation = Widgets.HorizontalSlider(skinSaturationSlider, skinSaturation, 0.0f, 1f, true, "saturation");
+                    skinValue = Widgets.HorizontalSlider(skinValueSlider, skinValue, 0.0f, 1f, true, "value");
+
+                    //if click in texColour box
+                    if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Mouse.IsOver(skinColorPicker))
+                    {
+                        Vector2 mPos = Event.current.mousePosition;
+                        float x = mPos.x - skinColorPicker.x;
+                        float y = mPos.y - skinColorPicker.y;
+                        Color pick = texColor.GetPixel(Convert.ToInt32(x), Convert.ToInt32(skinColorPicker.height - y));
+                        Color.RGBToHSV(pick, out skinHue, out _, out _);
+                        Event.current.Use();
+                    }
+                }
+
+                for (int ii = 0; ii < skinColorButtons.Count(); ++ii)
+                {
+                    GUI.DrawTexture(GenUI.ExpandedBy(skinColorButtons[ii].Item1, 2f), BaseContent.GreyTex);
+                    if (Widgets.ButtonInvisible(skinColorButtons[ii].Item1))
+                    {
+                        if (ModCompatibility.AlienRacesIsActive)
                         {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnSkinColour1, 2f), BaseContent.GreyTex);
-                            break;
+                            Color.RGBToHSV(skinColorButtons[ii].Item2, out skinHue, out skinSaturation, out skinValue);
                         }
-                    case 2:
+                        else
                         {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnSkinColour2, 2f), BaseContent.GreyTex);
-                            break;
+                            newSleeve.story.melanin = 0.1f + ii * 0.2f;
                         }
-                    case 3:
-                        {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnSkinColour3, 2f), BaseContent.GreyTex);
-                            break;
-                        }
-                    case 4:
-                        {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnSkinColour4, 2f), BaseContent.GreyTex);
-                            break;
-                        }
-                    case 5:
-                        {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnSkinColour5, 2f), BaseContent.GreyTex);
-                            break;
-                        }
-                    default: break;
+                        UpdateSleeveGraphic();
+                    }
+                    Widgets.DrawBoxSolid(skinColorButtons[ii].Item1, skinColorButtons[ii].Item2);
                 }
-
-                if (Widgets.ButtonInvisible(btnSkinColour1))
-                {
-                    selectedRaceBtn = 1;
-                    if (ModCompatibility.AlienRacesIsActive)
-                    {
-                        ModCompatibility.SetSkinColor(newSleeve, rgbConvert(242, 237, 224));
-                    }
-                    else
-                    {
-                        newSleeve.story.melanin = 0.1f;
-                    }
-                    UpdateSleeveGraphic();
-                }
-                Widgets.DrawBoxSolid(btnSkinColour1, rgbConvert(242, 237, 224));
-
-                if (Widgets.ButtonInvisible(btnSkinColour2))
-                {
-                    selectedRaceBtn = 2;
-                    if (ModCompatibility.AlienRacesIsActive)
-                    {
-                        ModCompatibility.SetSkinColor(newSleeve, rgbConvert(255, 239, 213));
-                    }
-                    else
-                    {
-                        newSleeve.story.melanin = 0.3f;
-                    }
-                    UpdateSleeveGraphic();
-                }
-                Widgets.DrawBoxSolid(btnSkinColour2, rgbConvert(255, 239, 213));
-
-                if (Widgets.ButtonInvisible(btnSkinColour3))
-                {
-                    selectedRaceBtn = 3;
-                    if (ModCompatibility.AlienRacesIsActive)
-                    {
-                        ModCompatibility.SetSkinColor(newSleeve, rgbConvert(255, 239, 189));
-                    }
-                    else
-                    {
-                        newSleeve.story.melanin = 0.5f;
-                    }
-                    UpdateSleeveGraphic();
-                }
-                Widgets.DrawBoxSolid(btnSkinColour3, rgbConvert(255, 239, 189));
-
-                if (Widgets.ButtonInvisible(btnSkinColour4))
-                {
-                    selectedRaceBtn = 4;
-                    if (ModCompatibility.AlienRacesIsActive)
-                    {
-                        ModCompatibility.SetSkinColor(newSleeve, rgbConvert(228, 158, 90));
-                    }
-                    else
-                    {
-                        newSleeve.story.melanin = 0.7f;
-                    }
-                    UpdateSleeveGraphic();
-                }
-                Widgets.DrawBoxSolid(btnSkinColour4, rgbConvert(228, 158, 90));
-
-                if (Widgets.ButtonInvisible(btnSkinColour5))
-                {
-                    selectedRaceBtn = 5;
-                    if (ModCompatibility.AlienRacesIsActive)
-                    {
-                        ModCompatibility.SetSkinColor(newSleeve, rgbConvert(130, 91, 48));
-                    }
-                    else
-                    {
-                        newSleeve.story.melanin = 0.9f;
-                    }
-                    UpdateSleeveGraphic();
-                }
-                Widgets.DrawBoxSolid(btnSkinColour5, rgbConvert(130, 91, 48));
+                UpdateSkin();
 
                 //Head Shape
                 Widgets.Label(lblHeadShape, "HeadShape".Translate().CapitalizeFirst() + ":");
+
+                if (ModCompatibility.AlienRacesIsActive)
+                {
+                    headLabel = ModCompatibility.GetAlienHead(newSleeve);
+                }
+                else
+                {
+                    headLabel = newSleeve.story.HeadGraphicPath.Split('/').Last();
+                }
                 Widgets.DrawHighlight(btnHeadShapeOutline);
                 if (ButtonTextSubtleCentered(btnHeadShapeArrowLeft, "<"))
                 {
@@ -758,7 +689,7 @@ namespace AlteredCarbon
                     }
                     UpdateSleeveGraphic();
                 }
-                if (ButtonTextSubtleCentered(btnHeadShapeSelection, "HeadTypeReplace".Translate()))
+                if (ButtonTextSubtleCentered(btnHeadShapeSelection, headLabel))
                 {
                     if (ModCompatibility.AlienRacesIsActive)
                     {
@@ -875,7 +806,7 @@ namespace AlteredCarbon
 
                     UpdateSleeveGraphic();
                 }
-                if (ButtonTextSubtleCentered(btnBodyShapeSelection, "BodyTypeReplace".Translate()))
+                if (ButtonTextSubtleCentered(btnBodyShapeSelection, newSleeve.story.bodyType.defName))
                 {
                     if (newSleeve.gender == Gender.Male)
                     {
@@ -932,157 +863,31 @@ namespace AlteredCarbon
                 //Hair Colour
                 Text.Anchor = TextAnchor.MiddleLeft;
                 Widgets.Label(lblHairColour, "HairColour".Translate().CapitalizeFirst() + ":");
-
-                Widgets.DrawMenuSection(btnHairColourOutlinePremade);
-                Widgets.DrawShadowAround(btnHairColourOutlinePremade);
-
-
-
-                switch (selectedHairBtn)
-                {
-                    case 1:
-                        {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnHairColour1, 2f), BaseContent.GreyTex);
-                            break;
-                        }
-                    case 2:
-                        {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnHairColour2, 2f), BaseContent.GreyTex);
-                            break;
-                        }
-                    case 3:
-                        {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnHairColour3, 2f), BaseContent.GreyTex);
-                            break;
-                        }
-                    case 4:
-                        {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnHairColour4, 2f), BaseContent.GreyTex);
-                            break;
-                        }
-                    case 5:
-                        {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnHairColour5, 2f), BaseContent.GreyTex);
-                            break;
-                        }
-                    case 6:
-                        {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnHairColour6, 2f), BaseContent.GreyTex);
-                            break;
-                        }
-                    case 7:
-                        {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnHairColour7, 2f), BaseContent.GreyTex);
-                            break;
-                        }
-                    case 8:
-                        {
-                            GUI.DrawTexture(GenUI.ExpandedBy(btnHairColour8, 2f), BaseContent.GreyTex);
-                            break;
-                        }
-
-                    default: break;
-                }
-
-                Widgets.DrawBoxSolid(btnHairColour1, rgbConvert(51, 51, 51));
-                Widgets.DrawBoxSolid(btnHairColour2, rgbConvert(79, 71, 66));
-                Widgets.DrawBoxSolid(btnHairColour3, rgbConvert(64, 51, 38));
-                Widgets.DrawBoxSolid(btnHairColour4, rgbConvert(77, 51, 26));
-                Widgets.DrawBoxSolid(btnHairColour5, rgbConvert(90, 58, 32));
-                Widgets.DrawBoxSolid(btnHairColour6, rgbConvert(132, 83, 47));
-                Widgets.DrawBoxSolid(btnHairColour7, rgbConvert(193, 146, 85));
-                Widgets.DrawBoxSolid(btnHairColour8, rgbConvert(237, 202, 156));
-
-
-
-                if (Widgets.ButtonInvisible(btnHairColour1))
-                {
-                    selectedHairBtn = 1;
-                    setHair(rgbConvert(51, 51, 51));
-                }
-                else
-                if (Widgets.ButtonInvisible(btnHairColour2))
-                {
-                    selectedHairBtn = 2;
-
-                    setHair(rgbConvert(79, 71, 66));
-                }
-                else
-                if (Widgets.ButtonInvisible(btnHairColour3))
-                {
-                    selectedHairBtn = 3;
-
-                    setHair(rgbConvert(64, 51, 38));
-                }
-                else
-                if (Widgets.ButtonInvisible(btnHairColour4))
-                {
-                    selectedHairBtn = 4;
-
-                    setHair(rgbConvert(77, 51, 26));
-                }
-                else
-                if (Widgets.ButtonInvisible(btnHairColour5))
-                {
-                    selectedHairBtn = 5;
-
-                    setHair(rgbConvert(90, 58, 32));
-                }
-                else
-                if (Widgets.ButtonInvisible(btnHairColour6))
-                {
-                    selectedHairBtn = 6;
-
-                    setHair(rgbConvert(132, 83, 47));
-                }
-                else
-                if (Widgets.ButtonInvisible(btnHairColour7))
-                {
-                    selectedHairBtn = 7;
-
-                    setHair(rgbConvert(193, 146, 85));
-                }
-                else
-                if (Widgets.ButtonInvisible(btnHairColour8))
-                {
-                    selectedHairBtn = 8;
-
-                    setHair(rgbConvert(237, 202, 156));
-                }
-
-                Widgets.DrawMenuSection(btnHairColourOutline);
-                Widgets.DrawTextureFitted(btnHairColourOutline, texColor, 1);
-                Widgets.DrawMenuSection(btnHairColourOutline2);
-                Widgets.DrawTextureFitted(btnHairColourOutline2, texDarkness, 1);
+                Widgets.DrawMenuSection(hairColorPicker);
+                Widgets.DrawTextureFitted(hairColorPicker, texColor, 1);
+                hairSaturation = Widgets.HorizontalSlider(hairSaturationSlider, hairSaturation, 0.0f, 1f, true, "saturation");
+                hairValue = Widgets.HorizontalSlider(hairValueSlider, hairValue, 0.0f, 1f, true, "value");
 
                 //if click in texColour box
-                if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Mouse.IsOver(btnHairColourOutline))
+                if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Mouse.IsOver(hairColorPicker))
                 {
                     Vector2 mPos = Event.current.mousePosition;
-                    float x = mPos.x - btnHairColourOutline.x;
-                    float y = mPos.y - btnHairColourOutline.y;
-                    //Log.Message(x.ToString());
-                    //Log.Message(y.ToString());
-
-                    setHair(texColor.GetPixel(Convert.ToInt32(x), Convert.ToInt32(btnHairColourOutline.height - y)));
+                    float x = mPos.x - hairColorPicker.x;
+                    float y = mPos.y - hairColorPicker.y;
+                    Color pick = texColor.GetPixel(Convert.ToInt32(x), Convert.ToInt32(hairColorPicker.height - y));
+                    Color.RGBToHSV(pick, out hairHue, out _, out _);
                     Event.current.Use();
                 }
-
-                //if click in Darkness box
-                if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Mouse.IsOver(btnHairColourOutline2))
+                for (int ii = 0; ii < hairColorButtons.Count(); ++ii)
                 {
-                    Vector2 mPos = Event.current.mousePosition;
-                    float x = mPos.x - btnHairColourOutline2.x;
-                    float y = mPos.y - btnHairColourOutline2.y;
-                    //Log.Message(x.ToString());
-                    //Log.Message(y.ToString());
-
-                    selectedColorFinal = texDarkness.GetPixel(Convert.ToInt32(x), Convert.ToInt32(btnHairColourOutline2.height - y));
-                    updateColors();
-                    newSleeve.story.hairColor = selectedColorFinal;
-                    refreshAndroidPortrait = true;
-                    Event.current.Use();
+                    GUI.DrawTexture(GenUI.ExpandedBy(hairColorButtons[ii].Item1, 2f), BaseContent.GreyTex);
+                    if (Widgets.ButtonInvisible(hairColorButtons[ii].Item1))
+                    {
+                        Color.RGBToHSV(hairColorButtons[ii].Item2, out hairHue, out hairSaturation, out hairValue);
+                    }
+                    Widgets.DrawBoxSolid(hairColorButtons[ii].Item1, hairColorButtons[ii].Item2);
                 }
+                UpdateHair();
 
                 //Hair Type
                 Text.Anchor = TextAnchor.MiddleLeft;
@@ -1229,6 +1034,7 @@ namespace AlteredCarbon
             pawn.playerSettings.medCare = MedicalCareCategory.Best;
             pawn.skills = new Pawn_SkillTracker(pawn);
             pawn.needs = new Pawn_NeedsTracker(pawn);
+            pawn.workSettings = new Pawn_WorkSettings(pawn);
             pawn.needs.mood.thoughts = new ThoughtHandler(pawn);
             pawn.timetable = new Pawn_TimetableTracker(pawn);
 
