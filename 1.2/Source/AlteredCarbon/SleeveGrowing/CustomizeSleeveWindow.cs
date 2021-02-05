@@ -506,7 +506,6 @@ namespace AlteredCarbon
                 refreshAndroidPortrait = false;
             }
 
-
             //Draw Pawn stuff.
             if (newSleeve != null)
             {
@@ -943,6 +942,7 @@ namespace AlteredCarbon
                 Widgets.DrawMenuSection(pawnBox);
                 Widgets.DrawShadowAround(pawnBox);
                 GUI.DrawTexture(pawnBoxPawn, PortraitsCache.Get(newSleeve, pawnBoxPawn.size, default(Vector3), 1f));
+                Widgets.InfoCardButton(pawnBox.x + pawnBox.width - Widgets.InfoCardButtonSize - 10f, pawnBox.y + pawnBox.height - Widgets.InfoCardButtonSize - 10f, newSleeve);
 
                 //Levels of Beauty
                 Text.Anchor = TextAnchor.MiddleCenter;

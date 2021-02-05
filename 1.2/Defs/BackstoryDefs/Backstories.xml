@@ -7,22 +7,6 @@
     <titleShort>Empty Sleeve</titleShort>
     <baseDescription>Grown in a vat, this body is basically brain-dead and can not live on its own.</baseDescription>
     <slot>Childhood</slot>
-    <workDisables>
-      <li>Animals</li>
-      <li>Artistic</li>
-      <li>Caring</li>
-      <li>Cleaning</li>
-      <li>Cooking</li>
-      <li>Crafting</li>
-      <li>Firefighting</li>
-      <li>Hauling</li>
-      <li>Intellectual</li>
-      <li>ManualDumb</li>
-      <li>ManualSkilled</li>
-      <li>Mining</li>
-      <li>PlantWork</li>
-      <li>Social</li>
-    </workDisables>
 	<spawnCategories>
 		<li>Civil</li>
 	</spawnCategories>
