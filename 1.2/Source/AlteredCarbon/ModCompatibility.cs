@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
@@ -154,9 +155,9 @@ namespace AlteredCarbon
 			}
 		}
 
-		public static List<ThingDef> GetAllAlienRaces(ExcludeRacesModExtension raceOptions)
+		public static List<ThingDef> GetGrowableRaces(List<ThingDef> excluded)
 		{
-			return DefDatabase<AlienRace.ThingDef_AlienRace>.AllDefs.Where(x => !raceOptions.racesToExclude.Contains(x.defName)).Cast<ThingDef>().ToList();
+			return DefDatabase<AlienRace.ThingDef_AlienRace>.AllDefs.Where(x => !excluded.Contains(x)).Cast<ThingDef>().ToList();
 		}
 
 		public static bool AlienRacesIsActive => ModLister.HasActiveModWithName("Humanoid Alien Races 2.0");

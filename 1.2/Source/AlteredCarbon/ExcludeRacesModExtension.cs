@@ -9,7 +9,9 @@ namespace AlteredCarbon
 {
     public class ExcludeRacesModExtension : DefModExtension
     {
-        public List<string> racesToExclude;
+        public bool canBeGrown = true;
+        public bool acceptsStacks = true;
     }
+
 }
 

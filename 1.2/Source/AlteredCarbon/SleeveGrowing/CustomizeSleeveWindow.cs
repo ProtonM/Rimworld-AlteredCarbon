@@ -12,6 +12,8 @@ namespace AlteredCarbon
 
     public class CustomizeSleeveWindow : Window
     {
+        private List<ThingDef> orderedValidAlienRaces;
+
         //Variables
         public Pawn newSleeve;
         public int finalExtraPrintingTimeCost = 0;
@@ -29,7 +31,7 @@ namespace AlteredCarbon
 
         public List<Trait> originalTraits = new List<Trait>();
         public Building_SleeveGrower sleeveGrower;
-        public ExcludeRacesModExtension raceOptions;
+
         //Static Values
         public override Vector2 InitialSize
         {
@@ -213,11 +215,40 @@ namespace AlteredCarbon
             return y;
         }
 
+        public List<ThingDef> InitializeExclusionsCache(string field)
+        {
+            List<ThingDef> excludedRaces = new List<ThingDef>();
+            foreach (ThingDef def in DefDatabase<ThingDef>.AllDefs.Where(def => def.category == ThingCategory.Pawn))
+            {
+                if (def.GetModExtension<ExcludeRacesModExtension>() is ExcludeRacesModExtension props)
+                {
+                    if (!(bool)typeof(ExcludeRacesModExtension).GetField(field).GetValue(props))
+                    {
+                        excludedRaces.Add(def);
+                    }
+                }
+            }
+            return excludedRaces;
+        }
 
         public CustomizeSleeveWindow(Building_SleeveGrower sleeveGrower)
         {
+            if (ModCompatibility.AlienRacesIsActive)
+            {
+                List<ThingDef> excludedRaces = new List<ThingDef>();
+                foreach (ThingDef def in DefDatabase<ThingDef>.AllDefs.Where(def => def.category == ThingCategory.Pawn))
+                {
+                    if (def.GetModExtension<ExcludeRacesModExtension>() is ExcludeRacesModExtension props)
+                    {
+                        if (!props.canBeGrown)
+                        {
+                            excludedRaces.Add(def);
+                        }
+                    }
+                }
+                orderedValidAlienRaces = ModCompatibility.GetGrowableRaces(excludedRaces).OrderBy(entry => entry.LabelCap.RawText).ToList();
+            }
             this.sleeveGrower = sleeveGrower;
-            this.raceOptions = this.sleeveGrower.def.GetModExtension<ExcludeRacesModExtension>();
             currentPawnKindDef = PawnKindDefOf.Colonist;
             var gender = Gender.Male;
             if (Rand.Chance(0.5f)) gender = Gender.Female;
@@ -540,26 +571,23 @@ namespace AlteredCarbon
                     Widgets.DrawHighlight(btnRaceChangeOutline);
                     if (ButtonTextSubtleCentered(btnRaceChangeArrowLeft, "<"))
                     {
-                        var allDefs = ModCompatibility.GetAllAlienRaces(this.raceOptions);
                         if (raceTypeIndex == 0)
                         {
-                            raceTypeIndex = allDefs.Count() - 1;
+                            raceTypeIndex = orderedValidAlienRaces.Count() - 1;
                         }
                         else
                         {
                             raceTypeIndex--;
                         }
-                        currentPawnKindDef.race = allDefs.ElementAt(raceTypeIndex); ;
+                        currentPawnKindDef.race = orderedValidAlienRaces.ElementAt(raceTypeIndex); ;
                         newSleeve = GetNewPawn(newSleeve.gender);
                         UpdateSleeveGraphic();
                         UpdateSkinColorButtons();
                         UpdateHairColorButtons();
                     }
-                    if (ButtonTextSubtleCentered(btnRaceChangeSelection, currentPawnKindDef.race.label))
+                    if (ButtonTextSubtleCentered(btnRaceChangeSelection, currentPawnKindDef.race.LabelCap))
                     {
-                        var allDefs = ModCompatibility.GetAllAlienRaces(this.raceOptions);
-                        IEnumerable<ThingDef> races = from racedef in allDefs select racedef;
-                        FloatMenuUtility.MakeMenu<ThingDef>(races, raceDef => raceDef.LabelCap, (ThingDef raceDef) => delegate
+                        FloatMenuUtility.MakeMenu<ThingDef>(orderedValidAlienRaces, raceDef => raceDef.LabelCap, (ThingDef raceDef) => delegate
                         {
                             currentPawnKindDef.race = raceDef;
                             newSleeve = GetNewPawn(newSleeve.gender);
@@ -570,8 +598,7 @@ namespace AlteredCarbon
                     }
                     if (ButtonTextSubtleCentered(btnRaceChangeArrowRight, ">"))
                     {
-                        var allDefs = ModCompatibility.GetAllAlienRaces(this.raceOptions);
-                        if (raceTypeIndex == allDefs.Count() - 1)
+                        if (raceTypeIndex == orderedValidAlienRaces.Count() - 1)
                         {
                             raceTypeIndex = 0;
                         }
@@ -579,7 +606,7 @@ namespace AlteredCarbon
                         {
                             raceTypeIndex++;
                         }
-                        currentPawnKindDef.race = allDefs.ElementAt(raceTypeIndex); ;
+                        currentPawnKindDef.race = orderedValidAlienRaces.ElementAt(raceTypeIndex); ;
                         newSleeve = GetNewPawn(newSleeve.gender);
                         UpdateSleeveGraphic();
                         UpdateSkinColorButtons();
@@ -1037,7 +1064,6 @@ namespace AlteredCarbon
             pawn.workSettings = new Pawn_WorkSettings(pawn);
             pawn.needs.mood.thoughts = new ThoughtHandler(pawn);
             pawn.timetable = new Pawn_TimetableTracker(pawn);
-
             if (BackstoryDatabase.TryGetWithIdentifier("AC_VatGrown45", out Backstory bs))
             {
                 pawn.story.childhood = bs;

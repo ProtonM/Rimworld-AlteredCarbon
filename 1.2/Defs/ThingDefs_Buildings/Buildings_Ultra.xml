@@ -85,35 +85,6 @@
             <li Class="CompProperties_Flickable" />
             <li Class="CompProperties_Breakdownable" />
         </comps>
-        <modExtensions>
-            <li Class="AlteredCarbon.ExcludeRacesModExtension">
-                <racesToExclude>
-                    <li MayRequire="Atlas.AndroidTiers">Android1Tier</li>
-                    <li MayRequire="Atlas.AndroidTiers">Android2Tier</li>
-                    <li MayRequire="Atlas.AndroidTiers">Android3Tier</li>
-                    <li MayRequire="Atlas.AndroidTiers">Android4Tier</li>
-                    <li MayRequire="Atlas.AndroidTiers">Android5Tier</li>
-                    <li MayRequire="Atlas.AndroidTiers">M7Mech</li>
-                    <li MayRequire="aRandomKiwi.AndroidTiersTXSerie">ATPP_Android2TX</li>
-                    <li MayRequire="aRandomKiwi.AndroidTiersTXSerie">ATPP_Android2ITX</li>
-                    <li MayRequire="aRandomKiwi.AndroidTiersTXSerie">ATPP_Android2KTX</li>
-                    <li MayRequire="aRandomKiwi.AndroidTiersTXSerie">ATPP_Android2KITX</li>
-                    <li MayRequire="aRandomKiwi.AndroidTiersTXSerie">ATPP_Android3TX</li>
-                    <li MayRequire="aRandomKiwi.AndroidTiersTXSerie">ATPP_Android3ITX</li>
-                    <li MayRequire="aRandomKiwi.AndroidTiersTXSerie">ATPP_Android4TX</li>
-                    <li MayRequire="aRandomKiwi.AndroidTiersTXSerie">ATPP_Android4ITX</li>
-                    <li MayRequire="neceros.androidsexpanded">NMedicDrone</li>
-                    <li MayRequire="neceros.androidsexpanded">NEngiDrone</li>
-                    <li MayRequire="neceros.androidsexpanded">NChefDrone</li>
-                    <li MayRequire="neceros.androidsexpanded">ChjSpacerDroid</li>
-                    <li MayRequire="neceros.androidsexpanded">ChjSpacerBattleDroid</li>
-                    <li MayRequire="neronix17.mechadroids">O21_Alien_MechadroidAlpha</li>
-                    <li MayRequire="neronix17.mechadroids">O21_Alien_MechadroidDelta</li>
-                    <li MayRequire="neronix17.mechadroids">O21_Alien_MechadroidGamma</li>
-                    <li MayRequire="goudaquiche.CrystalRace">Alien_Crystal</li>
-                </racesToExclude>
-            </li>
-        </modExtensions>
     </ThingDef>
 
     <ThingDef ParentName="BedWithQualityBase">
