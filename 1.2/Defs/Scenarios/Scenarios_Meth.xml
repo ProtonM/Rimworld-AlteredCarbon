@@ -73,15 +73,15 @@
                 </li>
                 <li Class="ScenPart_StartingThing_Defined">
                     <def>StartingThing_Defined</def>
-                    <thingDef>AC_Gun_ShockPDW</thingDef>
+                    <thingDef>Gun_MachinePistol</thingDef>
                 </li>
                 <li Class="ScenPart_StartingThing_Defined">
                     <def>StartingThing_Defined</def>
-                    <thingDef>AC_Gun_MACRevolver</thingDef>
+                    <thingDef>Gun_Revolver</thingDef>
                 </li>
                 <li Class="ScenPart_StartingThing_Defined">
                     <def>StartingThing_Defined</def>
-                    <thingDef>AC_Gun_QuickfirePistol</thingDef>
+                    <thingDef>Gun_Autopistol</thingDef>
                 </li>
                 <li Class="ScenPart_ScatterThingsNearPlayerStart">
                     <def>ScatterThingsNearPlayerStart</def>
