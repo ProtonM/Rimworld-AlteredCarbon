@@ -16,6 +16,7 @@ namespace AlteredCarbon
         public bool allowAC_Gun_MACRifle = true;
         public bool allowAC_Gun_QuickfirePistol = true;
         public bool allowAC_Gun_ShockPDW = true;
+        public float growingTimeModifier = 1.0f;
         public void ResetSavedDefs()
         {
             allowAC_Apparel_ProtectorateArmor = true;
@@ -50,6 +51,18 @@ namespace AlteredCarbon
             listingStandard.CheckboxLabeled("allowAC_Gun_MACRifle".Translate(), ref allowAC_Gun_MACRifle);
             listingStandard.CheckboxLabeled("allowAC_Gun_QuickfirePistol".Translate(), ref allowAC_Gun_QuickfirePistol);
             listingStandard.CheckboxLabeled("allowAC_Gun_ShockPDW".Translate(), ref allowAC_Gun_ShockPDW);
+
+            Rect rect = listingStandard.GetRect(Text.LineHeight);
+            Rect rect2 = rect.LeftPart(.70f).Rounded();
+            Rect rect3 = rect.RightPart(.30f).Rounded().LeftPart(.67f).Rounded();
+            TextAnchor anchor = Text.Anchor;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            Widgets.Label(rect2, "AlteredCarbon.growingTimeModifier".Translate());
+            float result = Widgets.HorizontalSlider(rect3, growingTimeModifier, 0.1f, 5f, true, growingTimeModifier.ToStringPercent(),null, null, 0.01f);
+            growingTimeModifier = result;
+            Text.Anchor = anchor;
+            listingStandard.Gap(listingStandard.verticalSpacing);
+            
             listingStandard.End();
         }
 

@@ -57,7 +57,7 @@
     </HediffDef>
 
     <HediffDef ParentName="DiseaseBase">
-        <defName>AC_Sleeve_Quality_Standart</defName>
+        <defName>AC_Sleeve_Quality_Standard</defName>
         <label>sleeve quality</label>
 		<defaultLabelColor>(0.44, 0.81, 0.81)</defaultLabelColor>
         <description>A baseline body grown properly.</description>
@@ -67,7 +67,7 @@
 		<priceImpact>true</priceImpact>
         <stages>
             <li>
-				<label>standart</label>
+				<label>standard</label>
             </li>
         </stages>
     </HediffDef>

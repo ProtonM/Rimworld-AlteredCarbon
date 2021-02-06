@@ -33,7 +33,7 @@ namespace AlteredCarbon
 
 		public static HediffDef AC_Sleeve_Quality_Low;
 
-		public static HediffDef AC_Sleeve_Quality_Standart;
+		public static HediffDef AC_Sleeve_Quality_Standard;
 
 		public static HediffDef AC_Sleeve_Quality_High;
 

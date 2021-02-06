@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEngine;
 using Verse;
 using System.Text.RegularExpressions;
+using System.Linq.Expressions;
 
 namespace AlteredCarbon
 {
@@ -39,11 +40,11 @@ namespace AlteredCarbon
             {
                 if (!ModCompatibility.AlienRacesIsActive)
                 {
-                    return new Vector2(728f, 538f);   //860x570
+                    return new Vector2(728f, 538f);
                 }
                 else
                 {
-                    return new Vector2(728f, 638f);   //860x670
+                    return new Vector2(728f, 638f);
                 }
             }
         }
@@ -65,8 +66,8 @@ namespace AlteredCarbon
         public Rect lblTimeToGrow;
         public Rect lblRequireBiomass;
 
-        public Rect lblLevelOfBeauty;
-        public Rect lblLevelOfQuality;
+        public Rect qualitySlider;
+        public Rect beautySlider;
 
         public Rect btnGenderMale;
         public Rect btnGenderFemale;
@@ -119,14 +120,9 @@ namespace AlteredCarbon
 
         public Rect pawnBox;
         public Rect pawnBoxPawn;
-
-        public Rect btnLevelOfBeauty1;
-        public Rect btnLevelOfBeauty2;
-        public Rect btnLevelOfBeauty3;
-
-        public Rect btnLevelOfQuality1;
-        public Rect btnLevelOfQuality2;
-        public Rect btnLevelOfQuality3;
+        public Rect healthBoxLabel;
+        public Rect healthBox;
+        public Rect heDiffPrintout;
 
         public Rect btnAccept;
         public Rect btnCancel;
@@ -158,16 +154,10 @@ namespace AlteredCarbon
         public int femaleBodyTypeIndex = 0;
         public string headLabel;
 
-        public int baseTicksToGrow = 900000;
-        public int baseTicksToGrow2 = 0;
-        public int baseTicksToGrow3 = 0;
-
-        public int baseMeatCost = 250;
-        public int baseMeatCost2 = 0;
-        public int baseMeatCost3 = 0;
-
-        public int beautyLevel = 2;
-        public int qualityLevel = 2;
+        public int ticksToGrow = 900000;
+        public int meatCost = 250;
+        public int beautyLevel = 0;
+        public int qualityLevel = 0;
 
         //button text subtle copied from Rimworld basecode but with minor changes to fit this UI
         public static bool ButtonTextSubtleCentered(Rect rect, string label, Vector2 functionalSizeOffset = default(Vector2))
@@ -253,7 +243,9 @@ namespace AlteredCarbon
             var gender = Gender.Male;
             if (Rand.Chance(0.5f)) gender = Gender.Female;
             newSleeve = GetNewPawn(gender);
-
+            UpdateGrowingCost();
+            UpdateHediffs();
+            ApplyBeauty();
 
             //860x570
             //init Rects
@@ -355,8 +347,6 @@ namespace AlteredCarbon
             btnHairTypeArrowRight = new Rect(btnHairTypeOutline.x + btnHairTypeOutline.width - btnHairTypeOutline.height - 2, btnHairTypeOutline.y, btnHairTypeOutline.height, btnHairTypeOutline.height);
             btnHairTypeSelection = new Rect(btnHairTypeOutline.x + 5 + btnHairTypeArrowLeft.width, btnHairTypeOutline.y, btnHairTypeOutline.width - 2 * (btnHairTypeArrowLeft.width) - 10, btnHairTypeOutline.height);
 
-
-
             //timetogrow
             lblTimeToGrow = new Rect(leftOffset, returnYfromPrevious(lblHairType), labelWidth * 3, buttonHeight);
 
@@ -364,24 +354,19 @@ namespace AlteredCarbon
             lblRequireBiomass = new Rect(leftOffset, lblTimeToGrow.y + lblTimeToGrow.height, labelWidth * 3, buttonHeight);
 
             //Pawn
-            pawnBox = new Rect(labelWidth + buttonOffsetFromText + buttonWidth * 2 + buttonOffsetFromButton + 30 + leftOffset, topOffset, pawnBoxSide, pawnBoxSide);
+            pawnBox = new Rect(labelWidth + buttonOffsetFromText + buttonWidth * 2 + buttonOffsetFromButton + 60 + leftOffset, topOffset, pawnBoxSide, pawnBoxSide);
             pawnBoxPawn = new Rect(pawnBox.x + pawnSpacingFromEdge, pawnBox.y + pawnSpacingFromEdge, pawnBox.width - pawnSpacingFromEdge * 2, pawnBox.height - pawnSpacingFromEdge * 2);
 
+            //Quality preview
+            healthBox = new Rect(pawnBox.x - 15, pawnBox.y + pawnBox.height + 40f, pawnBox.width + 30, 90f);
+            healthBoxLabel = new Rect(healthBox.x, healthBox.y - buttonHeight, healthBox.width, buttonHeight);
+            heDiffPrintout = healthBox.BottomPart(0.95f).LeftPart(0.95f).RightPart(0.95f);
+
             //Levels of Beauty
-            lblLevelOfBeauty = new Rect(pawnBox.x, pawnBox.y + pawnBox.height + optionOffset, pawnBox.width, buttonHeight);
-            btnLevelOfBeauty1 = new Rect(lblLevelOfBeauty.x, lblLevelOfBeauty.y + lblLevelOfBeauty.height + 2, (pawnBox.width - 9) / 3, buttonHeight);
-            btnLevelOfBeauty2 = btnLevelOfBeauty1;
-            btnLevelOfBeauty2.x += (pawnBox.width) / 3;
-            btnLevelOfBeauty3 = btnLevelOfBeauty2;
-            btnLevelOfBeauty3.x += (pawnBox.width) / 3;
+            beautySlider = new Rect(pawnBox.x, healthBox.y + healthBox.height + optionOffset, pawnBox.width, buttonHeight);
 
             //Levels of Quality
-            lblLevelOfQuality = new Rect(lblLevelOfBeauty.x, btnLevelOfBeauty1.y + btnLevelOfBeauty1.height + optionOffset / 2, pawnBox.width, buttonHeight);
-            btnLevelOfQuality1 = new Rect(lblLevelOfQuality.x, lblLevelOfQuality.y + lblLevelOfQuality.height + 2, (pawnBox.width - 9) / 3, buttonHeight);
-            btnLevelOfQuality2 = btnLevelOfQuality1;
-            btnLevelOfQuality2.x += (pawnBox.width) / 3;
-            btnLevelOfQuality3 = btnLevelOfQuality2;
-            btnLevelOfQuality3.x += (pawnBox.width) / 3;
+            qualitySlider = new Rect(beautySlider.x, beautySlider.y + buttonHeight, pawnBox.width, buttonHeight);
 
             //Accept/Cancel buttons
             btnAccept = new Rect(InitialSize.x * .5f - buttonWidth / 2 - buttonOffsetFromButton / 2 - buttonWidth / 2, InitialSize.y - buttonHeight - 38, buttonWidth, buttonHeight);
@@ -389,9 +374,76 @@ namespace AlteredCarbon
 
             //Create textures
             InitColorPicker();
-
         }
 
+        string GetQualityLabel()
+        {
+            if (qualityLevel == -1)
+            {
+                return QualityCategory.Poor.GetLabel();                
+            }
+            else if (qualityLevel == 1)
+            {
+                return QualityCategory.Good.GetLabel();                
+            }
+            else
+            {
+                return QualityCategory.Normal.GetLabel();
+            }
+        }
+        string GetBeautyLabel()
+        {
+            if (beautyLevel != 0)
+            {
+                Trait beauty = new Trait(TraitDefOf.Beauty, beautyLevel);
+                return beauty.LabelCap;
+            }
+            else
+            {
+                return QualityCategory.Normal.GetLabel().CapitalizeFirst();
+            }
+        }
+        void UpdateGrowingCost()
+        {
+            ticksToGrow = (int)((900000 + beautyLevel * 105000 + qualityLevel * 210000) * AlteredCarbonMod.settings.growingTimeModifier);
+            meatCost = 250 + beautyLevel * 25 + qualityLevel * 50;
+        }
+        void UpdateHediffs()
+        {
+            HediffDef qualityDiff;
+            if (qualityLevel == -1)
+            {
+                qualityDiff = AlteredCarbonDefOf.AC_Sleeve_Quality_Low;
+            }
+            else if (qualityLevel == 1)
+            {
+                qualityDiff = AlteredCarbonDefOf.AC_Sleeve_Quality_High;
+            }
+            else
+            {
+                qualityDiff = AlteredCarbonDefOf.AC_Sleeve_Quality_Standard;
+            }
+
+            RemoveAllHediffs(newSleeve);
+            newSleeve.health.AddHediff(qualityDiff, null);
+            var comp = sleeveGrower.ActiveBrainTemplate.TryGetComp<CompBrainTemplate>();
+            comp.SaveBodyData(newSleeve);
+        }
+
+        void ApplyBeauty()
+        {
+            RemoveAllTraits(newSleeve);
+            if (beautyLevel != 0)
+            {
+                newSleeve.story.traits.GainTrait(new Trait(TraitDefOf.Beauty, beautyLevel));
+            }
+        }
+
+        static string GetHediffToolTip(IEnumerable<Hediff> diffs, Pawn pawn)
+        {
+            MethodInfo tooltipGetter = typeof(HealthCardUtility).GetMethod("GetTooltip", BindingFlags.NonPublic | BindingFlags.Static);
+            return (string)tooltipGetter.Invoke(null, new object[] { diffs, pawn, null });
+        }
         public static Color rgbConvert(float r, float g, float b)
         {
             return new Color(((1f / 255f) * r), ((1f / 255f) * g), ((1f / 255f) * b));
@@ -558,10 +610,14 @@ namespace AlteredCarbon
                 if (Widgets.ButtonText(btnGenderMale, "Male".Translate().CapitalizeFirst()))
                 {
                     newSleeve = GetNewPawn(Gender.Male);
+                    UpdateHediffs();
+                    ApplyBeauty();
                 }
                 if (Widgets.ButtonText(btnGenderFemale, "Female".Translate().CapitalizeFirst()))
                 {
                     newSleeve = GetNewPawn(Gender.Female);
+                    UpdateHediffs();
+                    ApplyBeauty();
                 }
 
                 if (ModCompatibility.AlienRacesIsActive)
@@ -584,6 +640,8 @@ namespace AlteredCarbon
                         UpdateSleeveGraphic();
                         UpdateSkinColorButtons();
                         UpdateHairColorButtons();
+                        UpdateHediffs();
+                        ApplyBeauty();
                     }
                     if (ButtonTextSubtleCentered(btnRaceChangeSelection, currentPawnKindDef.race.LabelCap))
                     {
@@ -594,6 +652,8 @@ namespace AlteredCarbon
                             UpdateSleeveGraphic();
                             UpdateSkinColorButtons();
                             UpdateHairColorButtons();
+                            UpdateHediffs();
+                            ApplyBeauty();
                         });
                     }
                     if (ButtonTextSubtleCentered(btnRaceChangeArrowRight, ">"))
@@ -611,6 +671,8 @@ namespace AlteredCarbon
                         UpdateSleeveGraphic();
                         UpdateSkinColorButtons();
                         UpdateHairColorButtons();
+                        UpdateHediffs();
+                        ApplyBeauty();
                     }
                 }
 
@@ -957,10 +1019,10 @@ namespace AlteredCarbon
                 }
                 
                 //Time to Grow
-                Widgets.Label(lblTimeToGrow, "TimeToGrow".Translate().CapitalizeFirst() + ": " + GenDate.ToStringTicksToDays(baseTicksToGrow + baseTicksToGrow2 + baseTicksToGrow3));//PUT TIME TO GROW INFO HERE
+                Widgets.Label(lblTimeToGrow, "TimeToGrow".Translate().CapitalizeFirst() + ": " + GenDate.ToStringTicksToDays(ticksToGrow));//PUT TIME TO GROW INFO HERE
 
                 //Require Biomass
-                Widgets.Label(lblRequireBiomass, "RequireBiomass".Translate().CapitalizeFirst() + ": " + (baseMeatCost + baseMeatCost2 + baseMeatCost3));//PUT REQUIRED BIOMASS HERE
+                Widgets.Label(lblRequireBiomass, "RequireBiomass".Translate().CapitalizeFirst() + ": " + (meatCost));//PUT REQUIRED BIOMASS HERE
 
                 //Vertical Divider
                 //Widgets.DrawLineVertical((pawnBox.x + (btnGenderFemale.x + btnGenderFemale.width)) / 2, pawnBox.y, InitialSize.y - pawnBox.y - (buttonHeight + 53));
@@ -973,62 +1035,50 @@ namespace AlteredCarbon
 
                 //Levels of Beauty
                 Text.Anchor = TextAnchor.MiddleCenter;
-                Widgets.Label(lblLevelOfBeauty, "LevelOfBeauty".Translate().CapitalizeFirst() + ": " + beautyLevel);
-                if (Widgets.ButtonText(btnLevelOfBeauty1, "1"))
+                int newBeautyLevel = (int)Widgets.HorizontalSlider(beautySlider, beautyLevel, -2f, 2f, true, StatDefOf.Beauty.LabelCap + " : " + GetBeautyLabel(), null, null, 1f);
+                if(newBeautyLevel != beautyLevel)
                 {
-                    RemoveAllTraits(newSleeve);
-                    newSleeve.story.traits.GainTrait(new Trait(TraitDefOf.Beauty, -2));
-                    baseTicksToGrow2 = -210000;
-                    baseMeatCost2 = -50;
-                    beautyLevel = 1;
-                }
-                if (Widgets.ButtonText(btnLevelOfBeauty2, "2"))
-                {
-                    RemoveAllTraits(newSleeve);
-                    baseTicksToGrow2 = 0;
-                    baseMeatCost2 = 0;
-                    beautyLevel = 2;
-                }
-                if (Widgets.ButtonText(btnLevelOfBeauty3, "3"))
-                {
-                    RemoveAllTraits(newSleeve);
-                    newSleeve.story.traits.GainTrait(new Trait(TraitDefOf.Beauty, 2));
-                    baseTicksToGrow2 = 210000;
-                    baseMeatCost2 = 50;
-                    beautyLevel = 3;
+                    beautyLevel = newBeautyLevel;
+                    ApplyBeauty();
+                    UpdateGrowingCost();
                 }
 
                 //Levels of Quality
+                int newQualityLevel = (int)Widgets.HorizontalSlider(qualitySlider, qualityLevel, -1f, 1f, true, "Quality".Translate() + " : " + GetQualityLabel(), null, null, 1f);
+                if (newQualityLevel != qualityLevel)
+                {
+                    qualityLevel = newQualityLevel;
+                    UpdateHediffs();
+                    UpdateGrowingCost();
+                }
 
-                Widgets.Label(lblLevelOfQuality, "LevelofQuality".Translate().CapitalizeFirst() + ": " + qualityLevel);
-                if (Widgets.ButtonText(btnLevelOfQuality1, "1"))
+                //Hediff printout
+                IEnumerable<IGrouping<BodyPartRecord, Hediff>> heDiffListing;
+                MethodInfo heDiffLister = typeof(HealthCardUtility).GetMethod("VisibleHediffGroupsInOrder", BindingFlags.NonPublic | BindingFlags.Static);
+                heDiffListing = (IEnumerable<IGrouping<BodyPartRecord, Hediff>>)heDiffLister.Invoke(null, new object[] { newSleeve, false });
+                List<Hediff> diffs = heDiffListing.SelectMany(group => group).ToList();
+                Text.Anchor = TextAnchor.MiddleCenter;
+                Widgets.Label(healthBoxLabel, "AlteredCarbon.sleeveHealthPreview".Translate().CapitalizeFirst());
+                Widgets.DrawHighlight(healthBox);
+                GUI.color = HealthUtility.GoodConditionColor;
+                Listing_Standard diffListing = new Listing_Standard();
+                diffListing.Begin(heDiffPrintout);
+                Text.Anchor = TextAnchor.MiddleLeft;
+                for (int ii = 0; ii < diffs.Count; ++ii)
                 {
-                    baseTicksToGrow3 = -210000;
-                    baseMeatCost3 = -50;
-                    RemoveAllHediffs(newSleeve);
-                    newSleeve.health.AddHediff(AlteredCarbonDefOf.AC_Sleeve_Quality_Low, null);
-                    qualityLevel = 1;
+                    diffListing.Label(diffs[ii].LabelCap);
                 }
-                if (Widgets.ButtonText(btnLevelOfQuality2, "2"))
+                diffListing.End();
+                GUI.color = Color.white;
+                if (Mouse.IsOver(healthBox))
                 {
-                    baseTicksToGrow3 = 0;
-                    baseMeatCost3 = 0;
-                    RemoveAllHediffs(newSleeve);
-                    newSleeve.health.AddHediff(AlteredCarbonDefOf.AC_Sleeve_Quality_Standart, null);
-                    qualityLevel = 2;
-                }
-                if (Widgets.ButtonText(btnLevelOfQuality3, "3"))
-                {
-                    baseTicksToGrow3 = 210000;
-                    baseMeatCost3 = 50;
-                    RemoveAllHediffs(newSleeve);
-                    newSleeve.health.AddHediff(AlteredCarbonDefOf.AC_Sleeve_Quality_High, null);
-                    qualityLevel = 3;
+                    Widgets.DrawHighlight(healthBox);
+                    TooltipHandler.TipRegion(healthBox, new TipSignal((Func<string>)(() => GetHediffToolTip(diffs, newSleeve)), 1147682));
                 }
 
                 if (Widgets.ButtonText(btnAccept, "Accept".Translate().CapitalizeFirst()))
                 {
-                    sleeveGrower.StartGrowth(newSleeve, baseTicksToGrow + baseTicksToGrow2 + baseTicksToGrow3, baseMeatCost + baseMeatCost2 + baseMeatCost3);
+                    sleeveGrower.StartGrowth(newSleeve, ticksToGrow, meatCost);
                     this.Close();
                 }
                 if (Widgets.ButtonText(btnCancel, "Cancel".Translate().CapitalizeFirst()))
@@ -1091,7 +1141,13 @@ namespace AlteredCarbon
             {
                 pawn.needs.mood.thoughts.situational.Notify_SituationalThoughtsDirty();
             }
-
+            //align sliders
+            Color.RGBToHSV(pawn.story.hairColor, out hairHue, out hairSaturation, out hairValue);
+            if (ModCompatibility.AlienRacesIsActive)
+            {
+                Color.RGBToHSV(ModCompatibility.GetSkinColor(pawn), out skinHue, out skinSaturation, out skinValue);
+            }
+            //apply beauty and charm
             return pawn;
         }
     }
