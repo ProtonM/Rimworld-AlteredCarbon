@@ -174,6 +174,25 @@ namespace AlteredCarbon
 			allowMales = maleProb != 0.0f;
 			allowFemales = maleProb != 1.0f;
         }
+
+		public static List<HairDef> GetPermittedHair(ThingDef raceDef)
+        {
+			if (!((AlienRace.ThingDef_AlienRace)raceDef).alienRace.hairSettings.hasHair)
+            {
+				return new List<HairDef>();
+            }
+			else if (((AlienRace.ThingDef_AlienRace)raceDef).alienRace.hairSettings.hairTags == null)
+			{
+				//no good way to distinguish between alien specific hair and hair suitable for generic humanlikes
+				return DefDatabase<HairDef>.AllDefs.ToList();
+			}
+            else
+			{
+				List<string> allowedTags = ((AlienRace.ThingDef_AlienRace)raceDef).alienRace.hairSettings.hairTags.ToList();
+				return DefDatabase<HairDef>.AllDefs.Where(x => x.hairTags.Intersect(allowedTags).Any()).ToList();
+			}
+		}
+
 		public static List<ThingDef> GetGrowableRaces(List<ThingDef> excluded)
 		{
 			return DefDatabase<AlienRace.ThingDef_AlienRace>.AllDefs.Where(x => !excluded.Contains(x)).Cast<ThingDef>().ToList();

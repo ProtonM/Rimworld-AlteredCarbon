@@ -14,6 +14,7 @@ namespace AlteredCarbon
     public class CustomizeSleeveWindow : Window
     {
         private List<ThingDef> orderedValidAlienRaces;
+        private List<HairDef> permittedHair;
 
         //Variables
         public Pawn newSleeve;
@@ -987,19 +988,19 @@ namespace AlteredCarbon
                 {
                     if (hairTypeIndex == 0)
                     {
-                        hairTypeIndex = DefDatabase<HairDef>.AllDefs.Count() - 1;
+                        hairTypeIndex = permittedHair.Count() - 1;
                     }
                     else
                     {
                         hairTypeIndex--;
                     }
-                    newSleeve.story.hairDef = DefDatabase<HairDef>.AllDefs.ElementAt(hairTypeIndex);
+                    newSleeve.story.hairDef = permittedHair.ElementAt(hairTypeIndex);
                     UpdateSleeveGraphic();
                 }
                 if (ButtonTextSubtleCentered(btnHairTypeSelection, newSleeve.story.hairDef.LabelCap))
                 {
                     IEnumerable<HairDef> hairs =
-                        from hairdef in DefDatabase<HairDef>.AllDefs select hairdef;
+                        from hairdef in permittedHair select hairdef;
                     FloatMenuUtility.MakeMenu<HairDef>(hairs, hairDef => hairDef.LabelCap, (HairDef hairDef) => delegate
                     {
                         newSleeve.story.hairDef = hairDef;
@@ -1008,7 +1009,7 @@ namespace AlteredCarbon
                 }
                 if (ButtonTextSubtleCentered(btnHairTypeArrowRight, ">"))
                 {
-                    if (hairTypeIndex == DefDatabase<HairDef>.AllDefs.Count() - 1)
+                    if (hairTypeIndex == permittedHair.Count() - 1)
                     {
                         hairTypeIndex = 0;
                     }
@@ -1016,7 +1017,7 @@ namespace AlteredCarbon
                     {
                         hairTypeIndex++;
                     }
-                    newSleeve.story.hairDef = DefDatabase<HairDef>.AllDefs.ElementAt(hairTypeIndex);
+                    newSleeve.story.hairDef = permittedHair.ElementAt(hairTypeIndex);
                     UpdateSleeveGraphic();
                 }
                 
@@ -1160,7 +1161,13 @@ namespace AlteredCarbon
             if (ModCompatibility.AlienRacesIsActive)
             {
                 Color.RGBToHSV(ModCompatibility.GetSkinColor(pawn), out skinHue, out skinSaturation, out skinValue);
+                permittedHair = ModCompatibility.GetPermittedHair(currentPawnKindDef.race);
             }
+            else
+            {
+                permittedHair = DefDatabase<HairDef>.AllDefs.ToList();
+            }
+            
             return pawn;
         }
     }
