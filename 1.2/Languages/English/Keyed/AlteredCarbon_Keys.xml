@@ -72,5 +72,7 @@
 	
 	<AlteredCarbon.growingTimeModifier>Sleeve growing time multiplier</AlteredCarbon.growingTimeModifier>
 	<AlteredCarbon.sleeveHealthPreview>Health preview</AlteredCarbon.sleeveHealthPreview>
+	<AlteredCarbon.saturation>saturation</AlteredCarbon.saturation>
+	<AlteredCarbon.value>brightness</AlteredCarbon.value>	
 	
 </LanguageData>

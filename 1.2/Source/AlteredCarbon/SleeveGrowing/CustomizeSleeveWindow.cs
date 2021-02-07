@@ -692,8 +692,8 @@ namespace AlteredCarbon
                 {
                     Widgets.DrawMenuSection(skinColorPicker);
                     Widgets.DrawTextureFitted(skinColorPicker, texColor, 1);
-                    skinSaturation = Widgets.HorizontalSlider(skinSaturationSlider, skinSaturation, 0.0f, 1f, true, "saturation");
-                    skinValue = Widgets.HorizontalSlider(skinValueSlider, skinValue, 0.0f, 1f, true, "value");
+                    skinSaturation = Widgets.HorizontalSlider(skinSaturationSlider, skinSaturation, 0.0f, 1f, true, "AlteredCarbon.saturation".Translate());
+                    skinValue = Widgets.HorizontalSlider(skinValueSlider, skinValue, 0.0f, 1f, true, "AlteredCarbon.value".Translate());
 
                     //if click in texColour box
                     if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Mouse.IsOver(skinColorPicker))
@@ -964,8 +964,8 @@ namespace AlteredCarbon
                     Widgets.Label(lblHairColour, "HairColour".Translate().CapitalizeFirst() + ":");
                     Widgets.DrawMenuSection(hairColorPicker);
                     Widgets.DrawTextureFitted(hairColorPicker, texColor, 1);
-                    hairSaturation = Widgets.HorizontalSlider(hairSaturationSlider, hairSaturation, 0.0f, 1f, true, "saturation");
-                    hairValue = Widgets.HorizontalSlider(hairValueSlider, hairValue, 0.0f, 1f, true, "value");
+                    hairSaturation = Widgets.HorizontalSlider(hairSaturationSlider, hairSaturation, 0.0f, 1f, true, "AlteredCarbon.saturation".Translate());
+                    hairValue = Widgets.HorizontalSlider(hairValueSlider, hairValue, 0.0f, 1f, true, "AlteredCarbon.value".Translate());
 
                     //if click in texColour box
                     if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Mouse.IsOver(hairColorPicker))
