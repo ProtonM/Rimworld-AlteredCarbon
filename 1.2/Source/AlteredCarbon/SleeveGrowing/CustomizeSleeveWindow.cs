@@ -115,6 +115,7 @@ namespace AlteredCarbon
         public float selectedHairHue = 1.0f;
         public float selectedHairSaturation = 0.0f;
         public float selectedHairValue = 1.0f;
+        public Rect noHairBox;
 
         public Rect btnHairTypeOutline;
         public Rect btnHairTypeArrowLeft;
@@ -350,6 +351,9 @@ namespace AlteredCarbon
             btnHairTypeArrowRight = new Rect(btnHairTypeOutline.x + btnHairTypeOutline.width - btnHairTypeOutline.height - 2, btnHairTypeOutline.y, btnHairTypeOutline.height, btnHairTypeOutline.height);
             btnHairTypeSelection = new Rect(btnHairTypeOutline.x + 5 + btnHairTypeArrowLeft.width, btnHairTypeOutline.y, btnHairTypeOutline.width - 2 * (btnHairTypeArrowLeft.width) - 10, btnHairTypeOutline.height);
 
+            //no hair allowed infobox
+            noHairBox = new Rect(btnHairColourOutlinePremade.x, btnHairColourOutlinePremade.y, btnHairColourOutlinePremade.width, btnHairTypeOutline.y + btnHairTypeOutline.height - btnHairColourOutlinePremade.y);
+            
             //timetogrow
             lblTimeToGrow = new Rect(leftOffset, returnYfromPrevious(lblHairType), labelWidth * 3, buttonHeight);
 
@@ -950,77 +954,93 @@ namespace AlteredCarbon
                     UpdateSleeveGraphic();
                 }
 
+                if (!permittedHair.NullOrEmpty())
+                {
+                    //Hair Colour
+                    Text.Anchor = TextAnchor.MiddleLeft;
+                    Widgets.Label(lblHairColour, "HairColour".Translate().CapitalizeFirst() + ":");
+                    Widgets.DrawMenuSection(hairColorPicker);
+                    Widgets.DrawTextureFitted(hairColorPicker, texColor, 1);
+                    hairSaturation = Widgets.HorizontalSlider(hairSaturationSlider, hairSaturation, 0.0f, 1f, true, "saturation");
+                    hairValue = Widgets.HorizontalSlider(hairValueSlider, hairValue, 0.0f, 1f, true, "value");
 
-                //Hair Colour
-                Text.Anchor = TextAnchor.MiddleLeft;
-                Widgets.Label(lblHairColour, "HairColour".Translate().CapitalizeFirst() + ":");
-                Widgets.DrawMenuSection(hairColorPicker);
-                Widgets.DrawTextureFitted(hairColorPicker, texColor, 1);
-                hairSaturation = Widgets.HorizontalSlider(hairSaturationSlider, hairSaturation, 0.0f, 1f, true, "saturation");
-                hairValue = Widgets.HorizontalSlider(hairValueSlider, hairValue, 0.0f, 1f, true, "value");
+                    //if click in texColour box
+                    if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Mouse.IsOver(hairColorPicker))
+                    {
+                        Vector2 mPos = Event.current.mousePosition;
+                        float x = mPos.x - hairColorPicker.x;
+                        float y = mPos.y - hairColorPicker.y;
+                        Color pick = texColor.GetPixel(Convert.ToInt32(x), Convert.ToInt32(hairColorPicker.height - y));
+                        Color.RGBToHSV(pick, out hairHue, out _, out _);
+                        Event.current.Use();
+                    }
+                    for (int ii = 0; ii < hairColorButtons.Count(); ++ii)
+                    {
+                        GUI.DrawTexture(GenUI.ExpandedBy(hairColorButtons[ii].Item1, 2f), BaseContent.GreyTex);
+                        if (Widgets.ButtonInvisible(hairColorButtons[ii].Item1))
+                        {
+                            Color.RGBToHSV(hairColorButtons[ii].Item2, out hairHue, out hairSaturation, out hairValue);
+                        }
+                        Widgets.DrawBoxSolid(hairColorButtons[ii].Item1, hairColorButtons[ii].Item2);
+                    }
+                    UpdateHair();
 
-                //if click in texColour box
-                if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Mouse.IsOver(hairColorPicker))
-                {
-                    Vector2 mPos = Event.current.mousePosition;
-                    float x = mPos.x - hairColorPicker.x;
-                    float y = mPos.y - hairColorPicker.y;
-                    Color pick = texColor.GetPixel(Convert.ToInt32(x), Convert.ToInt32(hairColorPicker.height - y));
-                    Color.RGBToHSV(pick, out hairHue, out _, out _);
-                    Event.current.Use();
-                }
-                for (int ii = 0; ii < hairColorButtons.Count(); ++ii)
-                {
-                    GUI.DrawTexture(GenUI.ExpandedBy(hairColorButtons[ii].Item1, 2f), BaseContent.GreyTex);
-                    if (Widgets.ButtonInvisible(hairColorButtons[ii].Item1))
-                    {
-                        Color.RGBToHSV(hairColorButtons[ii].Item2, out hairHue, out hairSaturation, out hairValue);
-                    }
-                    Widgets.DrawBoxSolid(hairColorButtons[ii].Item1, hairColorButtons[ii].Item2);
-                }
-                UpdateHair();
 
-                //Hair Type
-                Text.Anchor = TextAnchor.MiddleLeft;
-                Widgets.Label(lblHairType, "HairType".Translate().CapitalizeFirst() + ":");
-                Widgets.DrawHighlight(btnHairTypeOutline);
-                if (ButtonTextSubtleCentered(btnHairTypeArrowLeft, "<"))
-                {
-                    if (hairTypeIndex == 0)
+                    //Hair Type
+                    Text.Anchor = TextAnchor.MiddleLeft;
+                    Widgets.Label(lblHairType, "HairType".Translate().CapitalizeFirst() + ":");
+                    Widgets.DrawHighlight(btnHairTypeOutline);
+                    if (ButtonTextSubtleCentered(btnHairTypeArrowLeft, "<"))
                     {
-                        hairTypeIndex = permittedHair.Count() - 1;
-                    }
-                    else
-                    {
-                        hairTypeIndex--;
-                    }
-                    newSleeve.story.hairDef = permittedHair.ElementAt(hairTypeIndex);
-                    UpdateSleeveGraphic();
-                }
-                if (ButtonTextSubtleCentered(btnHairTypeSelection, newSleeve.story.hairDef.LabelCap))
-                {
-                    IEnumerable<HairDef> hairs =
-                        from hairdef in permittedHair select hairdef;
-                    FloatMenuUtility.MakeMenu<HairDef>(hairs, hairDef => hairDef.LabelCap, (HairDef hairDef) => delegate
-                    {
-                        newSleeve.story.hairDef = hairDef;
+                        if (hairTypeIndex == 0)
+                        {
+                            hairTypeIndex = permittedHair.Count() - 1;
+                        }
+                        else
+                        {
+                            hairTypeIndex--;
+                        }
+                        newSleeve.story.hairDef = permittedHair.ElementAt(hairTypeIndex);
                         UpdateSleeveGraphic();
-                    });
+                    }
+                    if (ButtonTextSubtleCentered(btnHairTypeSelection, newSleeve.story.hairDef.LabelCap))
+                    {
+                        IEnumerable<HairDef> hairs =
+                            from hairdef in permittedHair select hairdef;
+                        FloatMenuUtility.MakeMenu<HairDef>(hairs, hairDef => hairDef.LabelCap, (HairDef hairDef) => delegate
+                        {
+                            newSleeve.story.hairDef = hairDef;
+                            UpdateSleeveGraphic();
+                        });
+                    }
+                    if (ButtonTextSubtleCentered(btnHairTypeArrowRight, ">"))
+                    {
+                        if (hairTypeIndex == permittedHair.Count() - 1)
+                        {
+                            hairTypeIndex = 0;
+                        }
+                        else
+                        {
+                            hairTypeIndex++;
+                        }
+                        newSleeve.story.hairDef = permittedHair.ElementAt(hairTypeIndex);
+                        UpdateSleeveGraphic();
+                    }
                 }
-                if (ButtonTextSubtleCentered(btnHairTypeArrowRight, ">"))
+                else
                 {
-                    if (hairTypeIndex == permittedHair.Count() - 1)
-                    {
-                        hairTypeIndex = 0;
-                    }
-                    else
-                    {
-                        hairTypeIndex++;
-                    }
-                    newSleeve.story.hairDef = permittedHair.ElementAt(hairTypeIndex);
+                    GUI.color = Color.grey;
+                    Widgets.Label(lblHairColour, "HairColour".Translate().CapitalizeFirst() + ":");
+                    Widgets.Label(lblHairType, "HairType".Translate().CapitalizeFirst() + ":");
+                    GUI.color = Color.white;
+                    Widgets.DrawHighlight(noHairBox);
+                    TextAnchor savedAnchor = Text.Anchor;
+                    Text.Anchor = TextAnchor.UpperCenter;
+                    Widgets.Label(noHairBox.BottomPart(0.5f), "AlteredCarbon.noHairAllowed".Translate().CapitalizeFirst());
                     UpdateSleeveGraphic();
+                    Text.Anchor = savedAnchor;
+                    
                 }
-                
                 //Time to Grow
                 Widgets.Label(lblTimeToGrow, "TimeToGrow".Translate().CapitalizeFirst() + ": " + GenDate.ToStringTicksToDays(ticksToGrow));//PUT TIME TO GROW INFO HERE
 

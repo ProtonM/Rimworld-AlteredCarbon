@@ -40,6 +40,7 @@
     <BodyTypeReplace>Body type</BodyTypeReplace>
     <Cancel>Cancel</Cancel>
     <GrowthProgress>Growth progress: </GrowthProgress>
+	<AlteredCarbon.noHairAllowed>This race does not support hair</AlteredCarbon.noHairAllowed>
     <HairColour>Hair colour</HairColour>
     <HairType>Hair type</HairType>
     <HeadShape>Head shape</HeadShape>
