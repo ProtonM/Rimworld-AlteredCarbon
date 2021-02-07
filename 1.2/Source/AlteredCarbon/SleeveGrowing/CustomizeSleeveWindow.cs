@@ -69,6 +69,8 @@ namespace AlteredCarbon
         public Rect qualitySlider;
         public Rect beautySlider;
 
+        public bool allowMales = true;
+        public bool allowFemales = true;
         public Rect btnGenderMale;
         public Rect btnGenderFemale;
 
@@ -607,13 +609,13 @@ namespace AlteredCarbon
                 //Gender
                 Text.Anchor = TextAnchor.MiddleLeft;
                 Widgets.Label(lblGender, "Gender".Translate() + ":");
-                if (Widgets.ButtonText(btnGenderMale, "Male".Translate().CapitalizeFirst()))
+                if (allowMales && Widgets.ButtonText(btnGenderMale, "Male".Translate().CapitalizeFirst()))
                 {
                     newSleeve = GetNewPawn(Gender.Male);
                     UpdateHediffs();
                     ApplyBeauty();
                 }
-                if (Widgets.ButtonText(btnGenderFemale, "Female".Translate().CapitalizeFirst()))
+                if (allowFemales && Widgets.ButtonText(btnGenderFemale, "Female".Translate().CapitalizeFirst()))
                 {
                     newSleeve = GetNewPawn(Gender.Female);
                     UpdateHediffs();
@@ -1091,6 +1093,18 @@ namespace AlteredCarbon
 
         public Pawn GetNewPawn(Gender gender)
         {
+            if (ModCompatibility.AlienRacesIsActive)
+            {
+                ModCompatibility.UpdateGenderRestrictions(currentPawnKindDef.race, out allowMales, out allowFemales);
+                if (gender == Gender.Male && !allowMales)
+                {
+                    gender = Gender.Female;
+                }
+                if (gender == Gender.Female && !allowFemales)
+                {
+                    gender = Gender.Male;
+                }
+            }
             maleBodyTypeIndex = 0;
             femaleBodyTypeIndex = 0;
             hairTypeIndex = 0;
@@ -1147,7 +1161,6 @@ namespace AlteredCarbon
             {
                 Color.RGBToHSV(ModCompatibility.GetSkinColor(pawn), out skinHue, out skinSaturation, out skinValue);
             }
-            //apply beauty and charm
             return pawn;
         }
     }

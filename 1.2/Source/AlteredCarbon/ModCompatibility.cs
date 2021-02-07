@@ -168,6 +168,12 @@ namespace AlteredCarbon
 			}
 		}
 
+		public static void UpdateGenderRestrictions(ThingDef raceDef, out bool allowMales, out bool allowFemales)
+        {
+			float maleProb = ((AlienRace.ThingDef_AlienRace)raceDef).alienRace.generalSettings.maleGenderProbability;
+			allowMales = maleProb != 0.0f;
+			allowFemales = maleProb != 1.0f;
+        }
 		public static List<ThingDef> GetGrowableRaces(List<ThingDef> excluded)
 		{
 			return DefDatabase<AlienRace.ThingDef_AlienRace>.AllDefs.Where(x => !excluded.Contains(x)).Cast<ThingDef>().ToList();
