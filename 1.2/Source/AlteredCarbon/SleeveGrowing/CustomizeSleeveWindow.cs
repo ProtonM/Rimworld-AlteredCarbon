@@ -654,6 +654,7 @@ namespace AlteredCarbon
                     {
                         FloatMenuUtility.MakeMenu<ThingDef>(orderedValidAlienRaces, raceDef => raceDef.LabelCap, (ThingDef raceDef) => delegate
                         {
+                            raceTypeIndex = orderedValidAlienRaces.IndexOf(raceDef);
                             currentPawnKindDef.race = raceDef;
                             newSleeve = GetNewPawn(newSleeve.gender);
                             UpdateSleeveGraphic();
@@ -869,7 +870,10 @@ namespace AlteredCarbon
                 }
 
 
-                //Body Shape
+                /*Body Shape
+                 *Please note that HAR seems to output some percentage of pawns with body 
+                 *types (male with female body or vice versa) that they can't select afterwards
+                 */
                 Widgets.Label(lblBodyShape, "BodyShape".Translate().CapitalizeFirst() + ":");
                 Widgets.DrawHighlight(btnBodyShapeOutline);
                 if (ButtonTextSubtleCentered(btnBodyShapeArrowLeft, "<"))
@@ -905,21 +909,20 @@ namespace AlteredCarbon
                 {
                     if (newSleeve.gender == Gender.Male)
                     {
-                        IEnumerable<BodyTypeDef> bodyTypes = from bodyType in DefDatabase<BodyTypeDef>
-                            .AllDefs.Where(x => x != BodyTypeDefOf.Female) select bodyType;
-                        FloatMenuUtility.MakeMenu<BodyTypeDef>(bodyTypes, bodyType => bodyType.defName, (BodyTypeDef bodyType) => delegate
+                        List<BodyTypeDef> maleBodyTypes = DefDatabase<BodyTypeDef>.AllDefs.Where(x => x != BodyTypeDefOf.Female).ToList();
+                        FloatMenuUtility.MakeMenu<BodyTypeDef>(maleBodyTypes, bodyType => bodyType.defName, (BodyTypeDef bodyType) => delegate
                         {
+                            maleBodyTypeIndex = maleBodyTypes.IndexOf(bodyType);
                             newSleeve.story.bodyType = bodyType;
                             UpdateSleeveGraphic();
                         });
                     }
                     else if (newSleeve.gender == Gender.Female)
                     {
-                        IEnumerable<BodyTypeDef> bodyTypes = from bodyType in DefDatabase<BodyTypeDef>
-                            .AllDefs.Where(x => x != BodyTypeDefOf.Male)
-                                                             select bodyType;
-                        FloatMenuUtility.MakeMenu<BodyTypeDef>(bodyTypes, bodyType => bodyType.defName, (BodyTypeDef bodyType) => delegate
+                        List<BodyTypeDef> femaleBodyTypes = DefDatabase<BodyTypeDef>.AllDefs.Where(x => x != BodyTypeDefOf.Male).ToList();
+                        FloatMenuUtility.MakeMenu<BodyTypeDef>(femaleBodyTypes, bodyType => bodyType.defName, (BodyTypeDef bodyType) => delegate
                         {
+                            femaleBodyTypeIndex = femaleBodyTypes.IndexOf(bodyType);
                             newSleeve.story.bodyType = bodyType;
                             UpdateSleeveGraphic();
                         });
@@ -1005,10 +1008,9 @@ namespace AlteredCarbon
                     }
                     if (ButtonTextSubtleCentered(btnHairTypeSelection, newSleeve.story.hairDef.LabelCap))
                     {
-                        IEnumerable<HairDef> hairs =
-                            from hairdef in permittedHair select hairdef;
-                        FloatMenuUtility.MakeMenu<HairDef>(hairs, hairDef => hairDef.LabelCap, (HairDef hairDef) => delegate
+                        FloatMenuUtility.MakeMenu<HairDef>(permittedHair, hairDef => hairDef.LabelCap, (HairDef hairDef) => delegate
                         {
+                            hairTypeIndex = permittedHair.IndexOf(hairDef);
                             newSleeve.story.hairDef = hairDef;
                             UpdateSleeveGraphic();
                         });
