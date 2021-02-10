@@ -434,7 +434,10 @@ namespace AlteredCarbon
             RemoveAllHediffs(newSleeve);
             newSleeve.health.AddHediff(qualityDiff, null);
             var comp = sleeveGrower.ActiveBrainTemplate.TryGetComp<CompBrainTemplate>();
-            comp.SaveBodyData(newSleeve);
+            if (comp != null)
+            {
+                comp.SaveBodyData(newSleeve);
+            }
         }
 
         void ApplyBeauty()
